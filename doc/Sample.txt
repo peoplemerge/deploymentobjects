@@ -1,0 +1,9 @@
+Model:
+Our yum repository for "Production" packages are located on yum.peoplemerge.com at /var/yum [and are available at http://10.1.1.1/repo]  
+Our jars and wars and ears and zips are located on archiva.peoplemerge.com
+
+Procedure when site is down:
+On [all|all available|all unavailable] webservers [in sequence|in parallel], run the bash command "/etc/init.d/httpd restart"
+
+The desktop environment consists of 1 node running all applications.
+The two_node environment consist of 1 node running the hudson application, and 1 node running all other applications.
