@@ -33,5 +33,17 @@ PERIOD : '.';
 
 COMMA_AND : COMMA | AND | COMMA AND;
 
-ENVIRONMENT_DEFINITION : 'The' ID 'environment consists of' NODE_APP_MAPPING (COMMA_AND NODE_APP_MAPPING)* PERIOD;
+//ENVIRONMENT_DEFINITION : 'The' ID 'environment consists of' NODE_APP_MAPPING (COMMA_AND NODE_APP_MAPPING)* PERIOD;
+
+//NODE_APP_MAPPING :  
+
+CREATE_STATEMENT : 'Create a new environment called' ID 'using' NODE_PARAM (COMMA_AND NODE_PARAM)*
+
+NODE_CLASSIFIER : 'ldap' | 'ec2' | 'dom0' | 'zookeeper'
+
+CAPABILITY : 'small' | 'large' | 'database'
+
+NODE_PARAM : INT_CONST of nodes with CAPABILITY from NODE_CLASSIFIER
+
+
 
