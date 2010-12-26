@@ -37,13 +37,13 @@ COMMA_AND : COMMA | AND | COMMA AND;
 
 //NODE_APP_MAPPING :  
 
-CREATE_STATEMENT : 'Create a new environment called' ID 'using' NODE_PARAM (COMMA_AND NODE_PARAM)*
+NODE_CLASSIFIER : 'ldap' | 'ec2' | 'dom0' | 'zookeeper';
 
-NODE_CLASSIFIER : 'ldap' | 'ec2' | 'dom0' | 'zookeeper'
+CAPABILITY : 'small' | 'large' | 'database';
 
-CAPABILITY : 'small' | 'large' | 'database'
+NODE_PARAM : INT_CONST 'of nodes with' CAPABILITY 'from' NODE_CLASSIFIER;
 
-NODE_PARAM : INT_CONST of nodes with CAPABILITY from NODE_CLASSIFIER
+CREATE_STATEMENT : 'Create a new environment called' ID 'using' NODE_PARAM (COMMA_AND NODE_PARAM)*;
 
 
 

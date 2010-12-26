@@ -29,6 +29,15 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>antlr3-maven-plugin</artifactId>
+					<version>1.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.antlr</groupId>
@@ -56,9 +65,7 @@
 		</plugins>
 	</build>
 	<repositories>
-		<!--
-	This is the ANTLR repository.
-	-->
+		<!-- This is the ANTLR repository. -->
 		<repository>
 			<id>antlr-snapshot</id>
 			<name>ANTLR Testing Snapshot Repository</name>
