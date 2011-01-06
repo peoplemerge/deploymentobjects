@@ -1,9 +1,10 @@
-grammar ngds;
+grammar Ngds;
 
 options{
-  backtrack=true;
-  output = AST;              // build trees
-  ASTLabelType = CommonTree; // use standard tree nodes
+	language = Java;
+//    backtrack=true;
+    output = AST;              // build trees
+    ASTLabelType = CommonTree; // use standard tree nodes
 }
 @header{
 	package com.peoplemerge.ngds;
@@ -18,7 +19,12 @@ options{
 	package com.peoplemerge.ngds;
 }
 
-ID: ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
+COMMA : ',';
+AND : 'and';
+PERIOD : '.';
+
+COMMA_AND : COMMA | AND | COMMA AND;
+
 COMMENT: '//' ~('\n'|'\r')* '\r'? '\n' {$channel=HIDDEN;}
 	|    '/*' ( options {greedy=false;} : . )* '*/' {$channel=HIDDEN;};
   
@@ -27,11 +33,6 @@ WS: ( ' '| '\t' | '\r' | '\n' ) {$channel=HIDDEN;};
 INT_CONST: '0'..'9'+;
 STRING: '"' (~('\\'|'"') )* '"';
 
-COMMA : ',';
-AND : 'and';
-PERIOD : '.';
-
-COMMA_AND : COMMA | AND | COMMA AND;
 
 //ENVIRONMENT_DEFINITION : 'The' ID 'environment consists of' NODE_APP_MAPPING (COMMA_AND NODE_APP_MAPPING)* PERIOD;
 
@@ -41,9 +42,8 @@ NODE_CLASSIFIER : 'ldap' | 'ec2' | 'dom0' | 'zookeeper';
 
 CAPABILITY : 'small' | 'large' | 'database';
 
-NODE_PARAM : INT_CONST 'of nodes with' CAPABILITY 'from' NODE_CLASSIFIER;
+ID: ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 
-CREATE_STATEMENT : 'Create a new environment called' ID 'using' NODE_PARAM (COMMA_AND NODE_PARAM)*;
+node_param : INT_CONST CAPABILITY 'nodes from' NODE_CLASSIFIER;
 
-
-
+create_statement : 'Create a new environment called' ID 'using' node_param (COMMA_AND node_param)* '.';
