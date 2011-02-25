@@ -8,6 +8,8 @@ options{
 }
 @header{
 	package com.peoplemerge.ngds;
+	import com.peoplemerge.ngds.Result;
+	import com.peoplemerge.ngds.Command;
 }
 
 @members{
@@ -46,4 +48,53 @@ ID: ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 
 node_param : INT_CONST CAPABILITY 'nodes from' NODE_CLASSIFIER;
 
-create_statement : 'Create a new environment called' ID 'using' node_param (COMMA_AND node_param)* '.';
+create_statement returns [Command command]: 
+	'Create a new environment called' ID 
+	'using' node_param (COMMA_AND node_param)* 
+	'.'
+	{$command = new CreateEnvironmentCommand();}
+	;
+
+PATH : ('a'..'z'|'A'..'Z'|'_'|'/'|'\\'|'.');
+
+version_param : 'latest' | ID  | INT_CONST;
+
+module_type : 'application' | 'infrastructure';
+
+filesystem_location : ID ':' PATH;
+
+code_repository : 'version control' | 'the maven repository' | 'the filesystem' filesystem_location;
+
+FABRIC : 'fabric'
+MCOLLECTIVE : 'mcollective'
+PUPPET : 'puppet'
+
+orchestration_method = (FABRIC | MCOLLECTIVE) 'orchestration'
+configuration_management_method = PUPPET 'configuration management'
+
+use_statement : 'Use' (orchestration_method | configuration_management_method)		
+
+deploy_statement returns [Command command]: 
+	'Deploy' version_param module_type 
+	'code from' code_repository 
+	'to the' ID 'environment.'
+	{$command = new DeployCommand();}
+;
+
+// Do I need to know about packages, dependencies, distributions?
+
+// Need to specify default meta parameters like where the source control is located, ec2 credentials or a way to lookup
+// free VMs.
+
+
+program returns [Result result]: 
+	(
+		create_statement {$result = $create_statement.command.execute();}
+		| deploy_statement {$result = $deploy_statement.command.execute();}
+	)
+	
+	;
+	
+emit_command: 'Emit';
+execute_command: 'Execute';
+ 	
