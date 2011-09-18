@@ -44,8 +44,8 @@ public class LangTest {
 	
 	@Test
 	public void scriptedSentence() throws RecognitionException {
-		String sentence = "On host localhost run:<<__EOF__ "
-			+ "ls "
+		String sentence = "On host localhost run:<<__EOF__\n"
+			+ "ls\n"
 			+ "__EOF__";
 		Program program = parse(sentence);
 		
@@ -54,6 +54,9 @@ public class LangTest {
 		// ditch Command pattern?
 		Assert.assertTrue(program.getCommand() instanceof ScriptedCommand);
 		ScriptedCommand toRun = (ScriptedCommand) program.getCommand();		
+		Assert.assertEquals("ls",toRun.getBody());
+		Assert.assertEquals("localhost",toRun.getHost());
+		
 	}
 	
 	@Test

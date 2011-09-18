@@ -92,7 +92,7 @@ scripted_statement returns [Command command] : 'On' +
 	 	'host' ID {}
 //	|   'role' ID 
 	'run:' '<<__EOF__'
- 	body=.* {$command = new ScriptedCommand($body.text);} 
+ 	body=.* {$command = new ScriptedCommand($body.text, $ID.text);} 
  	'__EOF__';
 
 version_param : 'latest' | ID  | INT_CONST;
