@@ -75,12 +75,6 @@ public class LangTest {
 		// Assume (default) HostsFileNaming
 		//Environment newEnvironment = toRun.execute();
 		
-		
-		
-		
-		
-		
-		
 	}
 
 	@Test
