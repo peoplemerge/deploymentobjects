@@ -33,19 +33,18 @@ public class ScriptedCommand implements Command {
 		return null;
 	}
 	
-	private String body, host;
+	private String body;
 
-	public ScriptedCommand(String body, String host){
+	public ScriptedCommand(String body){
 		this.body = body;
-		this.host = host;
 	}
 
 	public String getBody() {
 		return body;
 	}
-
-	public String getHost() {
-		return host;
+	
+	public String toString(){
+		return body;
 	}
 
 }

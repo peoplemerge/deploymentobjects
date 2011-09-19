@@ -25,6 +25,24 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
-public interface Step {
+public class Step {
 
+	private Command command;
+	private Node node;
+	
+	public Step(Command command, Node node) {
+		this.command = command;
+		this.node = node;
+	}
+
+	public Command getCommand() {
+		return command;
+	}
+
+	public Node getNode() {
+		return node;
+	}
+
+	
+	
 }

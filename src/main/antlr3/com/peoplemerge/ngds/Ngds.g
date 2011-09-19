@@ -78,7 +78,17 @@ ID: ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 
 node_param : INT_CONST CAPABILITY 'nodes from' NODE_CLASSIFIER;
 
-create_statement returns [Command command]: 
+scripted_statement returns [Command command, Node node] : 'On' + 
+	 	'host' ID {}
+//	|   'role' ID 
+	'run:' '<<__EOF__'
+ 	body=.* {
+ 		$command = new ScriptedCommand($body.text);
+ 		$node = new Node($ID.text);
+ 	} 
+ 	'__EOF__';
+
+create_statement returns [Command command, Node node]: 
 	'Create a new environment called' ID 
 	'using' node_param (COMMA_AND node_param)* 
 	'.'
@@ -86,14 +96,6 @@ create_statement returns [Command command]:
 	;
 
 PATH : ('a'..'z'|'A'..'Z'|'_'|'/'|'\\'|'.');
-
-
-scripted_statement returns [Command command] : 'On' + 
-	 	'host' ID {}
-//	|   'role' ID 
-	'run:' '<<__EOF__'
- 	body=.* {$command = new ScriptedCommand($body.text, $ID.text);} 
- 	'__EOF__';
 
 version_param : 'latest' | ID  | INT_CONST;
 
@@ -108,7 +110,7 @@ configuration_management_method : PUPPET 'configuration management';
 
 use_statement : 'Use' (orchestration_method | configuration_management_method);
 
-deploy_statement returns [Command command]: 
+deploy_statement returns [Command command, Node node]: 
 	'Deploy' version_param module_type 
 	'code from' code_repository 
 	'to the' ID 'environment.'
@@ -122,10 +124,11 @@ deploy_statement returns [Command command]:
 
 
 program returns [Program program]: 
+	{$program = new Program();}
 	(
-		scripted_statement {$program = Program.factory($scripted_statement.command);}
-		| create_statement {$program = Program.factory($create_statement.command);}
-		| deploy_statement {$program = Program.factory($deploy_statement.command);}
+		scripted_statement {$program.addStep($scripted_statement.command, $scripted_statement.node);}
+		| create_statement {$program.addStep($create_statement.command, null);}
+		| deploy_statement {$program.addStep($deploy_statement.command, null);}
 	)
 	
 	;

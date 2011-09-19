@@ -27,30 +27,38 @@
 
 package com.peoplemerge.ngds;
 
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Program {
 
-	private Program(){}
-	
-	private Command command;
+	private List<Step> steps = new LinkedList<Step>();
 
-	public Command getCommand() {
-		return command;
-	}
-
-	public static Program factory(Command command) {
-		Program program = new Program();
-		program.command = command;
-		return program;
+	public void addStep(Command command, Node node) {
+		Step step = new Step(command, node);
+		steps.add(step);
 	}
 
 	public List<Step> getSteps() {
-		HashMap<String,List<Integer>> k;
-//		k.keySet();
-		// TODO Auto-generated method stu
-		return null;
+		return steps;
+	}
+	
+	public String display(){
+		return toString();
+	}
+	
+	public String toString(){
+		String toRun = "";
+		for(Step step : steps){
+			toRun += "on " + step.getNode() + " run " + step.getCommand();
+		}
+		return toRun;
+	}
+	
+	public String execute(){
+		String log = "";
+		// actually do something
+		return log;
 	}
 	
 }

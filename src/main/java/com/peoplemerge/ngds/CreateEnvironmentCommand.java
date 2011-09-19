@@ -29,7 +29,7 @@ public class CreateEnvironmentCommand implements Command{
 
 	@Override
 	public Program execute() {
-		Program retval = Program.factory(this);
+		Program retval = new Program();
 		return retval;
 	}
 

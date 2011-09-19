@@ -27,4 +27,17 @@ package com.peoplemerge.ngds;
 
 public class Node {
 
+	private String hostname;
+
+	public Node(String hostname){
+		this.hostname = hostname;
+	}
+
+	public String getHostname() {
+		return hostname;
+	}
+	
+	public String toString(){
+		return hostname;
+	}
 }

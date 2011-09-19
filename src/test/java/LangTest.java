@@ -38,6 +38,7 @@ import com.peoplemerge.ngds.NgdsLexer;
 import com.peoplemerge.ngds.NgdsParser;
 import com.peoplemerge.ngds.Program;
 import com.peoplemerge.ngds.ScriptedCommand;
+import com.peoplemerge.ngds.Step;
 
 public class LangTest {
 	
@@ -52,11 +53,12 @@ public class LangTest {
 		// Perhaps the create environment command should return an environment
 		// implements Command<Environment> ?
 		// ditch Command pattern?
-		Assert.assertTrue(program.getCommand() instanceof ScriptedCommand);
-		ScriptedCommand toRun = (ScriptedCommand) program.getCommand();		
+		Step step = program.getSteps().get(0);
+		Assert.assertTrue(step.getCommand() instanceof ScriptedCommand);
+		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();		
 		Assert.assertEquals("ls",toRun.getBody());
-		Assert.assertEquals("localhost",toRun.getHost());
-		
+		Assert.assertEquals("localhost",step.getNode().getHostname());
+		Assert.assertEquals("on localhost run ls", program.display());
 	}
 	
 	@Test
@@ -67,8 +69,9 @@ public class LangTest {
 		// Perhaps the create environment command should return an environment
 		// implements Command<Environment> ?
 		// ditch Command pattern?
-		Assert.assertTrue(program.getCommand() instanceof CreateEnvironmentCommand);
-		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) program.getCommand();		
+		Step step = program.getSteps().get(0);
+		Assert.assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
+		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();		
 		
 		// Reach out to the domO to create the node
 		
@@ -87,7 +90,8 @@ public class LangTest {
 	public void deploySentence() throws RecognitionException {
 		String sentence = "Deploy latest infrastructure code from version control to the testing environment.";
 		Program program = parse(sentence);
-		Command toRun = program.getCommand();
+		Step step = program.getSteps().get(0);
+		Command toRun = step.getCommand();
 	}
 
 	private Program parse(String sentence) throws RecognitionException {
