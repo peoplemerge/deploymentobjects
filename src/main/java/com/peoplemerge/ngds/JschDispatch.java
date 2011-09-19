@@ -25,6 +25,25 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
-public class SshDispatch implements Dispatch {
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+
+public class JschDispatch implements Dispatch {
+
+	private JSch jsch = new JSch();
+	private Session session;
+	
+	public void dispatch(Step step) throws Exception{
+		session = jsch.getSession(null, step.getNode().getHostname());
+		session.connect();
+		// TODO set user!!!
+		Channel channel=session.openChannel("exec");
+		// TODO toString? fix this interface. 
+		((ChannelExec)channel).setCommand(step.getCommand().toString());
+		// TODO how to integration test?
+		channel.connect();
+	}
 
 }

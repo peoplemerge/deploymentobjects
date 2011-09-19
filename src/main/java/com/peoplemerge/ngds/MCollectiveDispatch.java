@@ -26,5 +26,11 @@
 package com.peoplemerge.ngds;
 
 public class MCollectiveDispatch implements Dispatch {
+
+	@Override
+	public void dispatch(Step step) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }
