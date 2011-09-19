@@ -50,9 +50,6 @@ public class LangTest {
 			+ "__EOF__";
 		Program program = parse(sentence);
 		
-		// Perhaps the create environment command should return an environment
-		// implements Command<Environment> ?
-		// ditch Command pattern?
 		Step step = program.getSteps().get(0);
 		Assert.assertTrue(step.getCommand() instanceof ScriptedCommand);
 		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();		
