@@ -29,7 +29,16 @@ public class Step {
 
 	private Command command;
 	private Node node;
+	private String output;
 	
+	public String getOutput() {
+		return output;
+	}
+
+	public void setOutput(String output) {
+		this.output = output;
+	}
+
 	public Step(Command command, Node node) {
 		this.command = command;
 		this.node = node;
@@ -42,6 +51,7 @@ public class Step {
 	public Node getNode() {
 		return node;
 	}
+
 
 	
 	
