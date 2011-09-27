@@ -88,11 +88,11 @@ scripted_statement returns [Command command, Node node] : 'On' +
  	} 
  	'__EOF__';
 
-create_statement returns [Command command, Node node]: 
-	'Create a new environment called' ID 
-	'using' node_param (COMMA_AND node_param)* 
+create_statement returns [Command command, Node node]:
+	'Create a new environment called' ID // create a data structure like a list
+	'using' node_param /*  add to list  */ (COMMA_AND node_param)* ]
 	'.'
-	{$command = new CreateEnvironmentCommand();}
+	{$command = new CreateEnvironmentCommand(/* pass in list */);}
 	;
 
 PATH : ('a'..'z'|'A'..'Z'|'_'|'/'|'\\'|'.');
@@ -110,9 +110,9 @@ configuration_management_method : PUPPET 'configuration management';
 
 use_statement : 'Use' (orchestration_method | configuration_management_method);
 
-deploy_statement returns [Command command, Node node]: 
-	'Deploy' version_param module_type 
-	'code from' code_repository 
+deploy_statement returns [Command command, Node node]:
+	'Deploy' version_param module_type
+	'code from' code_repository
 	'to the' ID 'environment.'
 	{$command = new DeployCommand();}
 ;
