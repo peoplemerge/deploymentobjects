@@ -62,8 +62,6 @@ INT_CONST: '0'..'9'+;
 STRING: '"' (~('\\'|'"') )* '"';
 
 
-//ENVIRONMENT_DEFINITION : 'The' ID 'environment consists of' NODE_APP_MAPPING (COMMA_AND NODE_APP_MAPPING)* PERIOD;
-
 //NODE_APP_MAPPING :  
 
 NODE_CLASSIFIER : 'ldap' | 'ec2' | 'dom0' | 'zookeeper';
@@ -75,6 +73,12 @@ MCOLLECTIVE : 'mcollective';
 PUPPET : 'puppet';
 
 ID: ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
+
+PATH : ('a'..'z'|'A'..'Z'|'_'|'/'|'\\'|'.');
+
+
+//ENVIRONMENT_DEFINITION : 'The' ID 'environment consists of' NODE_APP_MAPPING (COMMA_AND NODE_APP_MAPPING)* PERIOD;
+
 
 node_param : INT_CONST CAPABILITY 'nodes from' NODE_CLASSIFIER;
 
@@ -95,7 +99,6 @@ create_statement returns [Command command, Node node]:
 	{$command = new CreateEnvironmentCommand();}
 	;
 
-PATH : ('a'..'z'|'A'..'Z'|'_'|'/'|'\\'|'.');
 
 version_param : 'latest' | ID  | INT_CONST;
 
