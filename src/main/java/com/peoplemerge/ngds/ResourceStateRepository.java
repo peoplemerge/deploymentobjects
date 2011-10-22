@@ -25,6 +25,13 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
+import java.io.IOException;
+
 public interface ResourceStateRepository {
 
+	
+	//TODO make more precise exceptions
+	public void save(String key, Object element) throws Exception;
+	public Object retrieve(String key) throws Exception;
+	
 }

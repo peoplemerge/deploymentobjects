@@ -27,4 +27,16 @@ package com.peoplemerge.ngds;
 
 public class ZookeeperRepository implements ResourceStateRepository {
 
+	@Override
+	public Object retrieve(String key) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void save(String key, Object element) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

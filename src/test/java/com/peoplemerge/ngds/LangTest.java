@@ -1,3 +1,4 @@
+package com.peoplemerge.ngds;
 /************************************************************************
 ** 
 ** Copyright (C) 2011 Dave Thomas, PeopleMerge.
@@ -52,7 +53,7 @@ public class LangTest {
 		
 		Step step = program.getSteps().get(0);
 		Assert.assertTrue(step.getCommand() instanceof ScriptedCommand);
-		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();		
+		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();	
 		Assert.assertEquals("ls",toRun.getBody());
 		Assert.assertEquals("localhost",step.getNode().getHostname());
 		Assert.assertEquals("on localhost run ls", program.display());

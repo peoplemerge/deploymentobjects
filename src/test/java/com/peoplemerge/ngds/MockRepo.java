@@ -1,3 +1,4 @@
+package com.peoplemerge.ngds;
 /************************************************************************
 ** 
 ** Copyright (C) 2011 Dave Thomas, PeopleMerge.
@@ -23,8 +24,21 @@
 ** conditions contained in a signed written agreement between you and the 
 ** copyright owner.
 ************************************************************************/
-package com.peoplemerge.ngds;
+import com.peoplemerge.ngds.ResourceStateRepository;
 
-public class FlatFileRepository implements ResourceStateRepository {
+
+public class MockRepo implements ResourceStateRepository {
+
+	@Override
+	public Object retrieve(String key) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void save(String key, Object element) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

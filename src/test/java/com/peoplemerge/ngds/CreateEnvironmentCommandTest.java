@@ -1,3 +1,4 @@
+package com.peoplemerge.ngds;
 /************************************************************************
 ** 
 ** Copyright (C) 2011 Dave Thomas, PeopleMerge.
@@ -23,9 +24,15 @@
 ** conditions contained in a signed written agreement between you and the 
 ** copyright owner.
 ************************************************************************/
-import com.peoplemerge.ngds.ResourceStateRepository;
 
 
-public class MockRepo implements ResourceStateRepository {
-
+public class CreateEnvironmentCommandTest {
+	
+	// Step to figure out where to create the node based on where they are in the dom0 in the MockRepo
+	// Step to use a connection method to connect to the dom0 and issue command to create the node
+	// Step to add the node to the naming service 
+	// Step to add the environment to the MockRepo
+	
+	
+	
 }
