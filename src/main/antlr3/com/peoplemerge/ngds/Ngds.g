@@ -94,7 +94,7 @@ scripted_statement returns [Command command, Node node] : 'On' +
 
 create_statement returns [Command command, Node node]:
 	'Create a new environment called' ID // create a data structure like a list
-	'using' node_param /*  add to list  */ (COMMA_AND node_param)* ]
+	'using' node_param /*  add to list  */ (COMMA_AND node_param)* 
 	'.'
 	{$command = new CreateEnvironmentCommand(/* pass in list */);}
 	;
