@@ -82,15 +82,18 @@ PATH : ('a'..'z'|'A'..'Z'|'_'|'/'|'\\'|'.');
 
 node_param : INT_CONST CAPABILITY 'nodes from' NODE_CLASSIFIER;
 
+
+// TODO allow better here docs like so http://www.antlr.org/pipermail/antlr-interest/2005-September/013673.html
 scripted_statement returns [Command command, Node node] : 'On' + 
 	 	'host' ID {}
 //	|   'role' ID 
-	'run:' '<<__EOF__'
+//	|   'environment' ID 
+	'run:' '<<EOF'
  	body=.* {
  		$command = new ScriptedCommand($body.text);
  		$node = new Node($ID.text);
  	} 
- 	'__EOF__';
+ 	'EOF';
 
 create_statement returns [Command command, Node node]:
 	'Create a new environment called' ID // create a data structure like a list

@@ -25,6 +25,7 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
-public class HostsFileNamingService implements NamingService {
+public interface Executable {
 
+	public ExitCode execute();
 }

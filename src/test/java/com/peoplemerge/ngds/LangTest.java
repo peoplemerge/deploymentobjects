@@ -33,7 +33,7 @@ import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.TokenStream;
 import org.junit.Test;
 
-import com.peoplemerge.ngds.Command;
+import com.peoplemerge.ngds.Executable;
 import com.peoplemerge.ngds.CreateEnvironmentCommand;
 import com.peoplemerge.ngds.NgdsLexer;
 import com.peoplemerge.ngds.NgdsParser;
@@ -83,7 +83,7 @@ public class LangTest {
 		String sentence = "Deploy latest infrastructure code from version control to the testing environment.";
 		Program program = parse(sentence);
 		Step step = program.getSteps().get(0);
-		Command toRun = step.getCommand();
+		Executable toRun = step.getCommand();
 	}
 
 	private Program parse(String sentence) throws RecognitionException {

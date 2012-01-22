@@ -25,12 +25,12 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
-public class ScriptedCommand implements Command {
+public class ScriptedCommand implements Executable {
 
 	@Override
-	public Program execute() {
-		// TODO Auto-generated method stub
-		return null;
+	public ExitCode execute() {
+		// TODO
+		return ExitCode.FAILURE;
 	}
 	
 	private String body;

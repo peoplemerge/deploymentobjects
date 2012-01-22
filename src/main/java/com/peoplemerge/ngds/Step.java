@@ -27,7 +27,7 @@ package com.peoplemerge.ngds;
 
 public class Step {
 
-	private Command command;
+	private Executable command;
 	private Node node;
 	private String output;
 	
@@ -39,12 +39,12 @@ public class Step {
 		this.output = output;
 	}
 
-	public Step(Command command, Node node) {
+	public Step(Executable command, Node node) {
 		this.command = command;
 		this.node = node;
 	}
 
-	public Command getCommand() {
+	public Executable getCommand() {
 		return command;
 	}
 

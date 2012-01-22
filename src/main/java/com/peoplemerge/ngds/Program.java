@@ -34,7 +34,7 @@ public class Program {
 
 	private List<Step> steps = new LinkedList<Step>();
 
-	public void addStep(Command command, Node node) {
+	public void addStep(Executable command, Node node) {
 		Step step = new Step(command, node);
 		steps.add(step);
 	}

@@ -25,7 +25,9 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
-public interface Command {
+public class HostsFile implements NamingService {
 
-	public Program execute();
+	public HostsFile(Environment env){}
+	public HostsFile(ResourceStateRepository repo){}
+	
 }

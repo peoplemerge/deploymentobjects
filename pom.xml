@@ -62,7 +62,11 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.1</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.7</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<pluginManagement>
@@ -108,7 +112,8 @@
 			<url>http://antlr.org/antlr-snapshots</url>
 			<snapshots>
 				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
+				<!-- <updatePolicy>never</updatePolicy>
+			 -->
 			</snapshots>
 		</repository>
 	</repositories>
