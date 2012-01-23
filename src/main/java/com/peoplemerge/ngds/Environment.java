@@ -31,4 +31,10 @@ public class Environment implements AcceptsCommands{
 	
 	private List<Node> hosts;
 
+	@Override
+	public Job accept(Executable command) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

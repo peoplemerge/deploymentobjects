@@ -40,4 +40,12 @@ public class Node implements AcceptsCommands{
 	public String toString(){
 		return hostname;
 	}
+
+	@Override
+	public Job accept(Executable command) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+
 }

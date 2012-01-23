@@ -25,6 +25,8 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
+
+//ResolvableByName?
 public interface NamingService {
 
 }
