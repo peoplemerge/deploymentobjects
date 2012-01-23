@@ -25,7 +25,7 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
-public class MCollectiveDispatch implements Dispatch {
+public class MCollectiveDispatch implements Dispatchable {
 
 	@Override
 	public void dispatch(Step step) {

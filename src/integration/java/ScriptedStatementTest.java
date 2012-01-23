@@ -28,6 +28,8 @@ public class ScriptedStatementTest {
 		Assert.assertTrue(step.getCommand() instanceof ScriptedCommand);
 		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();	
 		ExitCode returned = toRun.execute();
+		
+	
 		//TODO Complete this test
 		Assert.assertEquals(ExitCode.FAILURE, returned);
 		

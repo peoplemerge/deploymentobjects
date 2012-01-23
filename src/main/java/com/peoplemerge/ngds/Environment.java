@@ -27,7 +27,7 @@ package com.peoplemerge.ngds;
 
 import java.util.List;
 
-public class Environment {
+public class Environment implements AcceptsCommands{
 	
 	private List<Node> hosts;
 

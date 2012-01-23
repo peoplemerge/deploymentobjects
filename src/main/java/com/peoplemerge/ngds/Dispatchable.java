@@ -25,6 +25,6 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
-public interface Dispatch {
+public interface Dispatchable {
 	public void dispatch(Step step) throws Exception;
 }

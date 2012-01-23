@@ -32,7 +32,7 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-public class JschDispatch implements Dispatch {
+public class JschDispatch implements Dispatchable {
 
 	private JSch jsch = new JSch();
 	private Session session;

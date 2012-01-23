@@ -25,7 +25,7 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
-public class Node {
+public class Node implements AcceptsCommands{
 
 	private String hostname;
 
