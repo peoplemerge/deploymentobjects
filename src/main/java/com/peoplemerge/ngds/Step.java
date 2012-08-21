@@ -25,10 +25,12 @@
 ************************************************************************/
 package com.peoplemerge.ngds;
 
-public class Step {
+import java.util.List;
+
+public class Step implements Executable{
 
 	private Executable command;
-	private Node node;
+	private AcceptsCommands node;
 	private String output;
 	
 	public String getOutput() {
@@ -39,7 +41,7 @@ public class Step {
 		this.output = output;
 	}
 
-	public Step(Executable command, Node node) {
+	public Step(Executable command, AcceptsCommands node) {
 		this.command = command;
 		this.node = node;
 	}
@@ -48,10 +50,14 @@ public class Step {
 		return command;
 	}
 
-	public Node getNode() {
-		return node;
+	public List<Node> getNodes() {
+		return node.getNodes();
 	}
 
+	@Override
+	public ExitCode execute() {
+		return null;
+	}
 
 	
 	

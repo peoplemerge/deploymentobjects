@@ -43,42 +43,46 @@ public class JschDispatch implements Dispatchable {
 	}
 
 	public void dispatch(Step step) throws Exception {
+		// Should use the runner, right?
+		for (Node node : step.getNodes()) {
+			session = jsch.getSession(userName, node.getHostname());
+			jsch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa");
+			java.util.Properties config = new java.util.Properties();
+			config.put("StrictHostKeyChecking", "no");
+			session.setConfig(config);
 
-		session = jsch.getSession(userName, step.getNode().getHostname());
-		jsch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa");
-		java.util.Properties config = new java.util.Properties();
-		config.put("StrictHostKeyChecking", "no");
-		session.setConfig(config);
+			session.connect();
+			Channel channel = session.openChannel("exec");
+			// TODO toString? fix this interface.
+			((ChannelExec) channel).setCommand(step.getCommand().toString());
+			// TODO how to integration test?
+			InputStream in = channel.getInputStream();
 
-		session.connect();
-		Channel channel = session.openChannel("exec");
-		// TODO toString? fix this interface.
-		((ChannelExec) channel).setCommand(step.getCommand().toString());
-		// TODO how to integration test?
-		InputStream in = channel.getInputStream();
-
-		channel.connect();
-		byte[] tmp = new byte[1024];
-		String output = "";
-		while (true) {
-			while (in.available() > 0) {
-				int i = in.read(tmp, 0, 1024);
-				if (i < 0)
+			channel.connect();
+			byte[] tmp = new byte[1024];
+			String output = "";
+			while (true) {
+				while (in.available() > 0) {
+					int i = in.read(tmp, 0, 1024);
+					if (i < 0)
+						break;
+					output += new String(tmp, 0, i);
+				}
+				if (channel.isClosed()) {
+					System.out.println("exit-status: "
+							+ channel.getExitStatus());
 					break;
-				output += new String(tmp, 0, i);
+				}
+				try {
+					Thread.sleep(1000);
+				} catch (Exception ee) {
+					//TODO - think HARD what to do here, instead of swallowing ! ! !
+				}
 			}
-			if (channel.isClosed()) {
-				System.out.println("exit-status: " + channel.getExitStatus());
-				break;
-			}
-			try {
-				Thread.sleep(1000);
-			} catch (Exception ee) {
-			}
+			channel.disconnect();
+			session.disconnect();
+			step.setOutput(output);
 		}
-		channel.disconnect();
-		session.disconnect();
-		step.setOutput(output);
 	}
 
 }

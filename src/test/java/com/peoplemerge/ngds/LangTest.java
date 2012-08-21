@@ -46,16 +46,16 @@ public class LangTest {
 	
 	@Test
 	public void scriptedSentence() throws RecognitionException {
-		String sentence = "On host localhost run:<<__EOF__\n"
+		String sentence = "On host localhost run:<<EOF\n"
 			+ "ls\n"
-			+ "__EOF__";
+			+ "EOF\n";
 		Program program = parse(sentence);
 		
 		Step step = program.getSteps().get(0);
 		Assert.assertTrue(step.getCommand() instanceof ScriptedCommand);
 		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();	
 		Assert.assertEquals("ls",toRun.getBody());
-		Assert.assertEquals("localhost",step.getNode().getHostname());
+		Assert.assertEquals("localhost",step.getNodes().get(0).getHostname());
 		Assert.assertEquals("on localhost run ls", program.display());
 	}
 	

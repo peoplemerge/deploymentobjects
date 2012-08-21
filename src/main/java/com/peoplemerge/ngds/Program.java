@@ -34,8 +34,8 @@ public class Program {
 
 	private List<Step> steps = new LinkedList<Step>();
 
-	public void addStep(Executable command, Node node) {
-		Step step = new Step(command, node);
+	public void addStep(Executable command, AcceptsCommands acceptsCommands) {
+		Step step = new Step(command, acceptsCommands);
 		steps.add(step);
 	}
 
@@ -50,7 +50,11 @@ public class Program {
 	public String toString(){
 		String toRun = "";
 		for(Step step : steps){
-			toRun += "on " + step.getNode() + " run " + step.getCommand();
+			// Loop through nodes here too?
+			// Really need to use the runner!
+			for (Node node : step.getNodes()){
+				toRun += "on " + node + " run " + step.getCommand();
+			}
 		}
 		return toRun;
 	}
