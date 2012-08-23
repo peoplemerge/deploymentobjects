@@ -30,10 +30,33 @@ import java.util.List;
 
 public class Node implements AcceptsCommands {
 
+	public enum Type {
+		SMALL, MEDIUM, LARGE;
+	}
+
+	private Type type;
+
 	private String hostname;
+
+	private NodePool source;
+
+	public Type getType() {
+		return type;
+	}
+
+	public NodePool getSource() {
+		return source;
+	}
 
 	public Node(String hostname) {
 		this.hostname = hostname;
+	}
+
+	// This makes sense when constructing Nodes
+	public Node(String hostname, Type type, NodePool source) {
+		this.hostname = hostname;
+		this.type = type;
+		this.source = source;
 	}
 
 	public String getHostname() {
@@ -51,7 +74,8 @@ public class Node implements AcceptsCommands {
 	}
 
 	// TODO This is here simply because Environment.getNodes makes sense which
-	// shares the interface AcceptsCommands. Think about ISP, break up AcceptsCommands?
+	// shares the interface AcceptsCommands. Think about ISP, break up
+	// AcceptsCommands?
 	public List<Node> getNodes() {
 		List<Node> asList = new ArrayList<Node>();
 		asList.add(this);

@@ -27,4 +27,16 @@ package com.peoplemerge.ngds;
 
 public class DnsNamingService implements NamingService {
 
+	@Override
+	public void add(String host, String ip) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void commit() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

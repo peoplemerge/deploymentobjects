@@ -25,11 +25,77 @@
  ************************************************************************/
 package com.peoplemerge.ngds;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.event.ListSelectionEvent;
+
 public class CreateEnvironmentCommand implements Executable {
 
+	private List<Node> nodes = new ArrayList<Node>();
+	private String name;
+	private ResourceStateRepository repo;
+	private Dispatchable dispatchable;
+	
+	
+	public static class Builder {
+
+		//"Create a new environment called development using 1 small nodes from dom0."
+		CreateEnvironmentCommand command = new CreateEnvironmentCommand();
+
+		public Builder(String environmentName, ResourceStateRepository repo){
+			command.name = environmentName;
+			command.repo = repo;
+		}
+		
+		public Builder withNodes(int quantity, Node.Type type, NodePool pool){
+			for(int i = 1; i <= quantity; i++){
+				Node node = new Node(command.name + i, type, pool);
+				command.nodes.add(node);
+			}
+			return this;
+		}
+		
+		public Builder withDispatch(Dispatchable d){
+			command.dispatchable = d;
+			return this;
+		}
+		
+		public CreateEnvironmentCommand build(){
+			if(command.dispatchable == null){
+				command.dispatchable = new JschDispatch(System.getProperty("user.name"));
+			}
+			return command;
+		}
+		
+	}
+	
 	@Override
-	public ExitCode execute() {
-		return ExitCode.FAILURE;
+	public ExitCode execute(){
+		for (Node node : nodes){
+			Step step = node.getSource().createStep(node.getType());
+			try {
+				dispatchable.dispatch(step);
+			} catch (Exception e) {
+				//TODO fail-fast behavior, alternatives would be desirable for users. 
+				// Consider rollback
+				// Add finer controls than "failure"
+				return ExitCode.FAILURE;
+			}
+		}
+		String nodeNames = "";
+		for(int i = 0; i < nodes.size(); i++){
+			if (i != 0){
+				nodeNames += ",";
+			}
+			nodeNames += nodes.get(i);
+		}
+		try {
+			repo.save("environments." + name, nodeNames);
+		} catch (Exception e) {
+			return ExitCode.FAILURE;
+		}
+		return ExitCode.SUCCESS;
 		
 	}
 

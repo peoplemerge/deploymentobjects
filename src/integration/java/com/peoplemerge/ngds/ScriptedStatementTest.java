@@ -1,3 +1,4 @@
+package com.peoplemerge.ngds;
 import junit.framework.Assert;
 
 import org.antlr.runtime.ANTLRStringStream;

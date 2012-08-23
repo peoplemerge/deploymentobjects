@@ -29,5 +29,15 @@ public class HostsFile implements NamingService {
 
 	public HostsFile(Environment env){}
 	public HostsFile(ResourceStateRepository repo){}
+	@Override
+	public void add(String host, String ip) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void commit() {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

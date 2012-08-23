@@ -1,3 +1,4 @@
+package com.peoplemerge.ngds;
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -8,6 +9,7 @@ import com.peoplemerge.ngds.JschDispatch;
 import com.peoplemerge.ngds.Node;
 import com.peoplemerge.ngds.ScriptedCommand;
 import com.peoplemerge.ngds.Step;
+import com.peoplemerge.ngds.Node.Type;
 
 public class JschDispatchTest {
 

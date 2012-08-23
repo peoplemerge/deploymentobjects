@@ -29,4 +29,8 @@ package com.peoplemerge.ngds;
 //ResolvableByName?
 public interface NamingService {
 
+	void add(String host, String ip);
+
+	void commit();
+
 }
