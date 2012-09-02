@@ -35,7 +35,9 @@ options{
 @header{
 	package com.peoplemerge.ngds;
 	import com.peoplemerge.ngds.Program;
-	import com.peoplemerge.ngds.Command;
+	import com.peoplemerge.ngds.Executable;
+	import com.peoplemerge.ngds.NodePool;
+	import com.peoplemerge.ngds.Node;
 }
 
 @members{
@@ -64,9 +66,9 @@ STRING: '"' (~('\\'|'"') )* '"';
 
 //NODE_APP_MAPPING :  
 
-NODE_CLASSIFIER : 'ldap' | 'ec2' | 'dom0' | 'zookeeper';
+node_classifier returns [NodePool pool] : 'ldap' | 'ec2' | 'dom0' ID {$pool = new Dom0($ID.text, new NfsMount());} | 'zookeeper' ;
 
-CAPABILITY : 'small' | 'large' | 'database';
+capability returns [Node.Type type] : 'small' {$type = Node.Type.getSmall();} | 'large' | 'database' ;
 
 FABRIC : 'fabric';
 MCOLLECTIVE : 'mcollective';
@@ -80,11 +82,15 @@ PATH : ('a'..'z'|'A'..'Z'|'_'|'/'|'\\'|'.');
 //ENVIRONMENT_DEFINITION : 'The' ID 'environment consists of' NODE_APP_MAPPING (COMMA_AND NODE_APP_MAPPING)* PERIOD;
 
 
-node_param : INT_CONST CAPABILITY 'nodes from' NODE_CLASSIFIER;
+node_param returns [Integer qty, Node.Type type, NodePool pool] : 
+	INT_CONST {$qty = new Integer($INT_CONST.text);}
+	capability {$type = $capability.type;}
+	'nodes from' node_classifier {$pool = $node_classifier.pool;}
+	;
 
 
 // TODO allow better here docs like so http://www.antlr.org/pipermail/antlr-interest/2005-September/013673.html
-scripted_statement returns [Command command, Node node] : 'On' + 
+scripted_statement returns [Executable command, Node node] : 'On' + 
 	 	'host' ID {}
 //	|   'role' ID 
 //	|   'environment' ID 
@@ -95,11 +101,17 @@ scripted_statement returns [Command command, Node node] : 'On' +
  	} 
  	'EOF';
 
-create_statement returns [Command command, Node node]:
+create_statement returns [Executable command, Node node]:
 	'Create a new environment called' ID // create a data structure like a list
-	'using' node_param /*  add to list  */ (COMMA_AND node_param)* 
-	'.'
-	{$command = new CreateEnvironmentCommand(/* pass in list */);}
+	{
+		CreateEnvironmentCommand.Builder builder = new CreateEnvironmentCommand.Builder($ID.text, null);
+	}
+	'using' node_param { builder.withNodes($node_param.qty,$node_param.type, $node_param.pool ); }
+	/*(COMMA_AND node_param { builder.withNodes($node_param.qty,$node_param.type, $node_param.pool ); })**/
+	'.' 
+	{
+		$command = builder.build();
+	}
 	;
 
 
@@ -116,7 +128,7 @@ configuration_management_method : PUPPET 'configuration management';
 
 use_statement : 'Use' (orchestration_method | configuration_management_method);
 
-deploy_statement returns [Command command, Node node]:
+deploy_statement returns [Executable command, Node node]:
 	'Deploy' version_param module_type
 	'code from' code_repository
 	'to the' ID 'environment.'

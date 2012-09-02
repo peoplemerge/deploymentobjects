@@ -31,7 +31,8 @@ import java.util.List;
 public class Node implements AcceptsCommands {
 
 	public enum Type {
-		SMALL, MEDIUM, LARGE;
+		SMALL, LARGE, DATABASE;
+		static Type getSmall(){return SMALL;}
 	}
 
 	private Type type;

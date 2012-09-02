@@ -61,7 +61,7 @@ public class LangTest {
 	
 	@Test
 	public void createSentence() throws RecognitionException {
-		String sentence = "Create a new environment called development using 1 small nodes from dom0.";
+		String sentence = "Create a new environment called development using 1 small nodes from dom0 xen0.";
 		Program program = parse(sentence);
 		
 		// Perhaps the create environment command should return an environment
@@ -70,8 +70,8 @@ public class LangTest {
 		Step step = program.getSteps().get(0);
 		Assert.assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
 		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();		
-		
 		// Reach out to the domO to create the node
+		//toRun.execute();
 		
 		// Assume (default) HostsFileNaming
 		//Environment newEnvironment = toRun.execute();

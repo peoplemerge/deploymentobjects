@@ -1,5 +1,7 @@
 package com.peoplemerge.ngds;
 
-public interface Template {
+import java.util.Map;
 
+public interface Template {
+	String encode(String template, Map<String,Object> vars);
 }

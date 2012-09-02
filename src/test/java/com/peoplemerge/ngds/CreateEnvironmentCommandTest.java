@@ -24,10 +24,13 @@ package com.peoplemerge.ngds;
  * copyright owner.
  ************************************************************************/
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.*;
 
+import java.io.File;
+import java.net.URL;
+
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 public class CreateEnvironmentCommandTest {
@@ -36,6 +39,7 @@ public class CreateEnvironmentCommandTest {
 	Dispatchable dispatch = mock(Dispatchable.class);
 	NodePool pool = mock(NodePool.class);
 	NamingService namingService = mock(NamingService.class);
+
 	// "Create a new environment called development using 1 small nodes from dom0."
 	// Step to figure out where to create the node based on the dom0s in the
 	// MockRepo
@@ -45,55 +49,103 @@ public class CreateEnvironmentCommandTest {
 	// Step to add the environment to the MockRepo
 
 	@Test
-	public void createOne() throws Exception{
+	public void createOne() throws Exception {
 
 		// TODO the Dom0 abstraction with NodePool should be overloaded or
 		// perhaps rethought since we actually want to get the dom0 host from
 		// the repository state
-		CreateEnvironmentCommand.Builder createCommandBuilder = new CreateEnvironmentCommand.Builder(
-				"test", mockrepo);
-		createCommandBuilder.withNodes(1, Node.Type.SMALL, pool);
-		//TODO the dispatch method should probably be control-inverted.
-		createCommandBuilder.withDispatch(dispatch);
-		
-		CreateEnvironmentCommand command = createCommandBuilder.build();
-		// so where is the libvirt / etc command encapsulated to hide 
-		Step dummyStep = new Step(new ScriptedCommand("dummy"),pool);
-		when(pool.createStep(Node.Type.SMALL)).thenReturn(dummyStep);
+		CreateEnvironmentCommand command = buildCommand(1);
+		// so where is the libvirt / etc command encapsulated to hide
+		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		when(pool.createStep(eq(Node.Type.SMALL),anyString())).thenReturn(dummyStep);
 		ExitCode exitCode = command.execute();
 		assertEquals(ExitCode.SUCCESS, exitCode);
-		verify(pool).createStep(Node.Type.SMALL);
+		verify(pool).createStep(eq(Node.Type.SMALL), anyString());
 		verify(dispatch).dispatch(dummyStep);
-		
+
 		verify(mockrepo).save("environments.test", "test1");
-		/* need to think more about how this will work outside of a test
-		verify(namingService).add("test1", "10.0.1.1");
-		verify(namingService).commit();
-		*/
+
+	}
+
+	
+	
+	private CreateEnvironmentCommand buildCommand(int numNodes) {
+		CreateEnvironmentCommand.Builder createCommandBuilder = builder(numNodes);
+
+		CreateEnvironmentCommand command = createCommandBuilder.build();
+		return command;
+	}
+
+
+
+	private CreateEnvironmentCommand.Builder builder(int numNodes) {
+		CreateEnvironmentCommand.Builder createCommandBuilder = new CreateEnvironmentCommand.Builder(
+				"test", mockrepo);
+		createCommandBuilder.withNodes(numNodes, Node.Type.SMALL, pool);
+		// TODO the dispatch method should probably be control-inverted.
+		createCommandBuilder.withDispatch(dispatch);
+		return createCommandBuilder;
 	}
 
 	@Test
-	public void createMultiple() throws Exception{
+	public void createMultiple() throws Exception {
 
-		// TODO the Dom0 abstraction with NodePool should be overloaded or
-		// perhaps rethought since we actually want to get the dom0 host from
-		// the repository state
-		CreateEnvironmentCommand.Builder createCommandBuilder = new CreateEnvironmentCommand.Builder(
-				"pair", mockrepo);
-		createCommandBuilder.withNodes(2, Node.Type.SMALL, pool);
-		//TODO the dispatch method should probably be control-inverted.
-		createCommandBuilder.withDispatch(dispatch);
-		
-		CreateEnvironmentCommand command = createCommandBuilder.build();
-		// so where is the libvirt / etc command encapsulated to hide 
-		Step dummyStep = new Step(new ScriptedCommand("dummy"),pool);
-		when(pool.createStep(Node.Type.SMALL)).thenReturn(dummyStep);
+		CreateEnvironmentCommand command = buildCommand(2);
+		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		when(pool.createStep(eq(Node.Type.SMALL),anyString())).thenReturn(dummyStep);
 		ExitCode exitCode = command.execute();
 		assertEquals(ExitCode.SUCCESS, exitCode);
 
-		verify(mockrepo).save("environments.pair", "pair1,pair2");
+		verify(mockrepo).save("environments.test", "test1,test2");
+
+	}
+
+	@Test
+	public void addToNameService() throws Exception {
+		CreateEnvironmentCommand command = buildCommand(2);
+		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		when(pool.createStep(eq(Node.Type.SMALL),anyString())).thenReturn(dummyStep);
+
+		/*
+		 * need to think more about how this will work outside of a test
+		 * verify(namingService).add("test1", "10.0.1.1");
+		 * verify(namingService).commit();
+		 */
+		// this code exercises the paths of adding to a nameservice but doesn't test the result.
+		ExitCode exitCode = command.execute();
+		assertEquals(ExitCode.SUCCESS, exitCode);
 		
 	}
 
+	
+	
+	@Test
+	public void kickstartTemplate() throws Exception {
+		CreateEnvironmentCommand.Builder builder = builder(1);
+		
+		File tempFile = File.createTempFile("test", "ks");
+		tempFile.deleteOnExit();
+		String tempDir = new File(tempFile.getParent()).getAbsolutePath();
+		builder.withKickstartServer(tempDir, new NfsMount());
+		CreateEnvironmentCommand command = builder.build();
+
+		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		when(pool.createStep(eq(Node.Type.SMALL),anyString())).thenReturn(dummyStep);
+
+
+		//when(mockrepo.retrieve("global.kickstartserver")).thenReturn("localhost:/" + tempDir);
+		ExitCode exitCode = command.execute();
+		assertEquals(ExitCode.SUCCESS, exitCode);
+		File actualKs = new File(tempDir + "/test1.ks");
+		actualKs.deleteOnExit();
+		String actual = FileUtils.readFileToString(actualKs);
+		URL expectedUrl = this.getClass().getClassLoader().getResource("expected-test1.ks");
+		File expectedKs = new File(expectedUrl.getFile());
+		String expected = FileUtils.readFileToString(expectedKs);
+		assertEquals(expected, actual);
+		
+	}
+	
+	
 
 }

@@ -68,6 +68,7 @@ public class JschDispatch implements Dispatchable {
 						break;
 					output += new String(tmp, 0, i);
 				}
+				//TODO This exit code should probably be returned.
 				if (channel.isClosed()) {
 					System.out.println("exit-status: "
 							+ channel.getExitStatus());

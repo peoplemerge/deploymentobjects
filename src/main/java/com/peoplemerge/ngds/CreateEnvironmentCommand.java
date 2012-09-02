@@ -26,9 +26,9 @@
 package com.peoplemerge.ngds;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import javax.swing.event.ListSelectionEvent;
+import java.util.Map;
 
 public class CreateEnvironmentCommand implements Executable {
 
@@ -36,8 +36,10 @@ public class CreateEnvironmentCommand implements Executable {
 	private String name;
 	private ResourceStateRepository repo;
 	private Dispatchable dispatchable;
+	private KickstartServer kickstartServer;
+	public Storage storage;
 	
-	
+	private CreateEnvironmentCommand(){}
 	public static class Builder {
 
 		//"Create a new environment called development using 1 small nodes from dom0."
@@ -61,9 +63,17 @@ public class CreateEnvironmentCommand implements Executable {
 			return this;
 		}
 		
+		public Builder withKickstartServer(String baseDir, Storage storage){
+			command.kickstartServer = new KickstartServer(baseDir, storage);
+			return this;
+		}
+		
 		public CreateEnvironmentCommand build(){
 			if(command.dispatchable == null){
 				command.dispatchable = new JschDispatch(System.getProperty("user.name"));
+			}
+			if(command.kickstartServer == null){
+				command.kickstartServer = new KickstartServer("/mnt/media/software/kickstart", new NfsMount());
 			}
 			return command;
 		}
@@ -73,7 +83,15 @@ public class CreateEnvironmentCommand implements Executable {
 	@Override
 	public ExitCode execute(){
 		for (Node node : nodes){
-			Step step = node.getSource().createStep(node.getType());
+			Map<String, Object> vars = new HashMap<String,Object>();
+			try {
+				kickstartServer.writeKickstartFile(node.getHostname());
+			} catch (Exception e) {
+				return ExitCode.FAILURE;
+			}
+		}
+		for (Node node : nodes){
+			Step step = node.getSource().createStep(node.getType(), node.getHostname());
 			try {
 				dispatchable.dispatch(step);
 			} catch (Exception e) {
@@ -95,6 +113,7 @@ public class CreateEnvironmentCommand implements Executable {
 		} catch (Exception e) {
 			return ExitCode.FAILURE;
 		}
+
 		return ExitCode.SUCCESS;
 		
 	}
