@@ -31,7 +31,7 @@ public interface ResourceStateRepository {
 
 	
 	//TODO make more precise exceptions
-	public void save(String key, Object element) throws Exception;
+	public void save(String key, String element) throws Exception;
 	public Object retrieve(String key) throws Exception;
 	
 }

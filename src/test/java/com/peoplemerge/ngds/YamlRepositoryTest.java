@@ -53,7 +53,7 @@ public class YamlRepositoryTest {
 	
 	@Test 
 	public void savesPersist() throws Exception{
-		File file = File.createTempFile("yamlpersistenttestcase", "yaml");
+		File file = File.createTempFile("yamlpersistenttestcase", ".yaml");
 		file.deleteOnExit();
 		String filename = file.getPath();
 		repo = new YamlRepository(filename);

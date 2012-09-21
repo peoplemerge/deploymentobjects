@@ -36,7 +36,7 @@ public class MockRepo implements ResourceStateRepository {
 	}
 
 	@Override
-	public void save(String key, Object element) {
+	public void save(String key, String element) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -55,16 +55,16 @@ public class YamlRepository implements ResourceStateRepository {
 		}
 	}
 
-	public Object retrieve(String key) throws IOException {
+	public String retrieve(String key) throws IOException {
 		if(yamlFile != null){
 			contents = FileUtils.readFileToString(yamlFile);
 		}
 		Map map = (Map) yaml.load(contents);
-		return map.get(key);
+		return  map.get(key).toString();
 	}
 
 	@Override
-	public synchronized void save(String key, Object element) throws IOException {
+	public synchronized void save(String key, String element) throws IOException {
 		if(yamlFile != null){
 			contents = FileUtils.readFileToString(yamlFile);
 		}

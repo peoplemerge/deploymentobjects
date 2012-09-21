@@ -1,0 +1,40 @@
+A couple of pages, what am I going to do?
+Just as administering most production environments is a labor-intensive manual process, there is no such thing as an installer for distributed systems.  Deploying distributed software systems today involves a sequence of steps across multiple systems which are individually automated but rarely automated as a group.  In instances when deployment is automated, it is accomplished by 1-off scripts too tightly coupled to external communication to be reusable.  
+
+Background material, 1-2 chaps
+
+Automated system configuration and deployment tools have existed in various forms for years.  The most basic such tool is written in a shell scripting language such as the Bourne shell, created in 1977 [2], and solves a single purpose, such as starting a network interface on a host.  It’s successor, Bourne-Again Shell (bash) scripts combine to control the majority of start up tasks for modern System V and Berkeley UNIX variants and is extensively used in industry.  The C shell (csh) and its descendants dominate systems programming in academic environments.
+
+Jumpstart was developed for Solaris in 1994 [1] which reads installation options from a file when provisioning a Solaris host, freeing up the administrator from repeatedly selecting the same options from the user interface manually.  Likewise, Linux vendors developed analogous tools (such as Kickstart, packaged by Red Hat) starting with early version of their distributions, and the ability quickly became widespread.
+
+Configuration Management (CM) tools for systems began with CFEngine, a post-doctoral open-source project started by Mark Burgess at Oslo University in 1993 [3].  After their operating systems have been configured such as with Jumpstart or Kickstart, CFEngine allows a systems administrator to group systems and configure them in a uniform and operating-system-independent manner using human-readable configuration files.  Being the first tool of its kind, CFEngine continues to be developed and is the most widely-used CM tool in use today.  It is written in C.
+
+Commercial CM tools have also been developed, such as BMC BladeLogic, HP OpenView, and IBM Tivoli, but due to their high cost, open-source tools dominate the market.  
+
+In 2005, CFEngine contributor and former BMC employee Luke Kanies developed Puppet.  It was written in Ruby and quickly gathered a large community by being more easily extended than CFEngine.  Administrators use Puppet’s declarative external Domain Specific Language (DSL) to create manifests that define the desired state of a system; daemons then alter the current state of the system so it becomes the desired state.  For example, managing users or setting up NFS mounts can be done by using the provided DSL.  The DSL can be extended by developing modules in Ruby.  The Puppet community has provided a large number of modules that simplify and standardize many common administration tasks, such as configuring a Hadoop cluster or a DNS server via Puppet Forge, a site built for sharing modules.  
+
+Many sites had invested heavily in setting up CFEngine to manage their infrastructure, so they elected to stay with CFEngine, but once Puppet gained momentum, few new sites were built with CFEngine.
+
+In 2009, Puppet contributor Jesse Robbins released yet another alternative, Chef, which uses an internal DSL rather than an external DSL; the administrator develops in pure Ruby instead of Puppet’s proprietary language, which is not turing-complete.  Again, many new sites are developed with Chef, although Puppet retains a lead due to it’s establish base.
+
+One limitation of CM tools such as Puppet is that when the administrator alters the configuration that is shared between nodes, the change only occurs when a timer on the node expires, causing it to check for changes to apply.  The only way to coordinate changes across nodes is by using an external tool to trigger the execution.
+
+Built a tool?  Introduce the tool.
+
+We built 3 use cases:
+Create an environment
+Deploy code to the environment
+When an entry appears in a log file, trigger action elsewhere
+
+Results - ex performance, limitations, what did (not) work, what'd I learn
+
+Conclusion
+
+
+References:
+1.  http://en.wikipedia.org/wiki/Jumpstart_(Solaris)
+2.  http://en.wikipedia.org/wiki/Bourne_shell
+3.  http://cfengine.com/the-history-of-cfengine
+4.  http://www.akitaonrails.com/2009/11/18/chatting-with-luke-kaines#.UFo-1aSe6Do
+
+

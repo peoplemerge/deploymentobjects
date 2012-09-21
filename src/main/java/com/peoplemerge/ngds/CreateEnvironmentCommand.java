@@ -30,14 +30,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CreateEnvironmentCommand implements Executable {
+public class CreateEnvironmentCommand implements Executable, HostWatcher.NodeAppears {
 
 	private List<Node> nodes = new ArrayList<Node>();
 	private String name;
 	private ResourceStateRepository repo;
 	private Dispatchable dispatchable;
 	private KickstartServer kickstartServer;
-	public Storage storage;
+	private Storage storage;
+	private NamingService namingService;
 	
 	private CreateEnvironmentCommand(){}
 	public static class Builder {
@@ -63,17 +64,26 @@ public class CreateEnvironmentCommand implements Executable {
 			return this;
 		}
 		
-		public Builder withKickstartServer(String baseDir, Storage storage){
-			command.kickstartServer = new KickstartServer(baseDir, storage);
+		public Builder withKickstartServer(KickstartServer kickstartServer){
+			command.kickstartServer = kickstartServer;
 			return this;
 		}
-		
+
+
+		public Builder withNamingService(NamingService namingService) {
+			command.namingService = namingService;
+			return this;
+		}
+
 		public CreateEnvironmentCommand build(){
 			if(command.dispatchable == null){
 				command.dispatchable = new JschDispatch(System.getProperty("user.name"));
 			}
 			if(command.kickstartServer == null){
 				command.kickstartServer = new KickstartServer("/mnt/media/software/kickstart", new NfsMount());
+			}
+			if(command.namingService == null){
+				command.namingService = new TemplateHostsFile();
 			}
 			return command;
 		}
@@ -116,6 +126,24 @@ public class CreateEnvironmentCommand implements Executable {
 
 		return ExitCode.SUCCESS;
 		
+	}
+	
+	@Override
+	public synchronized void nodeAppears(String host, String ip){
+		boolean hasRemaining = false;
+		for(Node node: nodes){
+			if(node.getHostname().equals(host)){
+				namingService.add(host, ip);
+				node.setProvisioned();
+			}else{
+				if(!node.isProvisioned()){
+					hasRemaining = true;
+				}
+			}
+		}
+		if(!hasRemaining){
+			namingService.commit();
+		}
 	}
 
 }

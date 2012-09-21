@@ -13,7 +13,7 @@ public class KickstartServerTest {
 
 	@Test
 	public void testWriteKickstartFile() throws Exception{
-		String tempDir = new File(File.createTempFile("test", "ks").getParent()).getAbsolutePath();
+		String tempDir = new File(File.createTempFile("test", ".ks").getParent()).getAbsolutePath();
 		Storage storage = mock(Storage.class);
 		KickstartServer server = new KickstartServer(tempDir, storage);
 		String hostname = "kstest";

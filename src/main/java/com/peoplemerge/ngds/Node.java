@@ -40,6 +40,8 @@ public class Node implements AcceptsCommands {
 	private String hostname;
 
 	private NodePool source;
+	
+	private Boolean isProvisioned;
 
 	public Type getType() {
 		return type;
@@ -81,6 +83,19 @@ public class Node implements AcceptsCommands {
 		List<Node> asList = new ArrayList<Node>();
 		asList.add(this);
 		return asList;
+	}
+
+	//TODO consider a user-definable set of statuses rather than just provisioned.  Not adding that now because we want to just do the simplest thing that can possibly work!
+	public void setProvisioned() {
+		isProvisioned = true;
+	}
+	
+	//TODO clean this up
+	public boolean isProvisioned(){
+		if(isProvisioned == null){
+			return false;
+		}
+		return isProvisioned;
 	}
 
 }
