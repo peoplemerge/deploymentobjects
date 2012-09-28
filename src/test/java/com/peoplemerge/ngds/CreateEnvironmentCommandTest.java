@@ -209,8 +209,8 @@ public class CreateEnvironmentCommandTest {
 	@Test
 	public void libvirt() {
 		// TODO when the znode goes away, the dom0 should wait until the node is
-		// "stopped" then restart it. It would be really cool if there was a way
-		// of be notified
+		// "stopped" then restart it. This is coded but tests need to be written.
+		
 	}
 
 }

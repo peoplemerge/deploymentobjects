@@ -26,11 +26,12 @@
 package com.peoplemerge.ngds;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
-public class CreateEnvironmentCommand implements Executable, HostWatcher.NodeAppears {
+public class CreateEnvironmentCommand implements Executable,
+		HostWatcher.NodeAppears {
 
 	private List<Node> nodes = new ArrayList<Node>();
 	private String name;
@@ -39,81 +40,94 @@ public class CreateEnvironmentCommand implements Executable, HostWatcher.NodeApp
 	private KickstartServer kickstartServer;
 	private Storage storage;
 	private NamingService namingService;
-	
-	private CreateEnvironmentCommand(){}
+
+	private CreateEnvironmentCommand() {
+	}
+
 	public static class Builder {
 
-		//"Create a new environment called development using 1 small nodes from dom0."
+		// "Create a new environment called development using 1 small nodes from dom0."
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand();
 
-		public Builder(String environmentName, ResourceStateRepository repo){
+		public Builder(String environmentName, ResourceStateRepository repo) {
 			command.name = environmentName;
 			command.repo = repo;
 		}
-		
-		public Builder withNodes(int quantity, Node.Type type, NodePool pool){
-			for(int i = 1; i <= quantity; i++){
+
+		public Builder withNodes(int quantity, Node.Type type, NodePool pool) {
+			for (int i = 1; i <= quantity; i++) {
 				Node node = new Node(command.name + i, type, pool);
 				command.nodes.add(node);
 			}
 			return this;
 		}
-		
-		public Builder withDispatch(Dispatchable d){
+
+		public Builder withDispatch(Dispatchable d) {
 			command.dispatchable = d;
 			return this;
 		}
-		
-		public Builder withKickstartServer(KickstartServer kickstartServer){
+
+		public Builder withKickstartServer(KickstartServer kickstartServer) {
 			command.kickstartServer = kickstartServer;
 			return this;
 		}
-
 
 		public Builder withNamingService(NamingService namingService) {
 			command.namingService = namingService;
 			return this;
 		}
 
-		public CreateEnvironmentCommand build(){
-			if(command.dispatchable == null){
-				command.dispatchable = new JschDispatch(System.getProperty("user.name"));
+		public CreateEnvironmentCommand build() {
+			if (command.dispatchable == null) {
+				command.dispatchable = new JschDispatch(System
+						.getProperty("user.name"));
 			}
-			if(command.kickstartServer == null){
-				command.kickstartServer = new KickstartServer("/mnt/media/software/kickstart", new NfsMount());
+			if (command.kickstartServer == null) {
+				command.kickstartServer = new KickstartServer(
+						"/mnt/media/software/kickstart", new NfsMount());
 			}
-			if(command.namingService == null){
+			if (command.namingService == null) {
 				command.namingService = new TemplateHostsFile();
 			}
 			return command;
 		}
-		
+
 	}
-	
+
 	@Override
-	public ExitCode execute(){
-		for (Node node : nodes){
-			Map<String, Object> vars = new HashMap<String,Object>();
+	public ExitCode execute() {
+		for (Node node : nodes) {
 			try {
 				kickstartServer.writeKickstartFile(node.getHostname());
 			} catch (Exception e) {
 				return ExitCode.FAILURE;
 			}
 		}
-		for (Node node : nodes){
-			Step step = node.getSource().createStep(node.getType(), node.getHostname());
+		List<Step> dispatched = new LinkedList<Step>();
+		for (Node node : nodes) {
+			Step step = node.getSource().createStep(node.getType(),
+					node.getHostname());
 			try {
 				dispatchable.dispatch(step);
 			} catch (Exception e) {
-				//TODO fail-fast behavior, alternatives would be desirable for users. 
+				// TODO fail-fast behavior, alternatives would be desirable for
+				// users.
 				// Consider rollback
 				// Add finer controls than "failure"
 				return ExitCode.FAILURE;
 			}
+			dispatched.add(step);
 		}
+		for (Node node : nodes) {
+			// TODO extract these timing variables to the grammar
+			node.getSource()
+					.pollForDomainToStop(node.getHostname(), 500, 60000);
+			node.getSource().startHost(node.getHostname());
+		}
+
 		String nodeNames = "";
-		for(int i = 0; i < nodes.size(); i++){
-			if (i != 0){
+		for (int i = 0; i < nodes.size(); i++) {
+			if (i != 0) {
 				nodeNames += ",";
 			}
 			nodeNames += nodes.get(i);
@@ -124,25 +138,42 @@ public class CreateEnvironmentCommand implements Executable, HostWatcher.NodeApp
 			return ExitCode.FAILURE;
 		}
 
+		// TODO test the concurrency and zk portions with simple mocks
+		// TODO rethink this part, instanceof looks like a hack, invert control
+		// would appear cleaner and more testable.  It violates OCP.
+		if (repo instanceof ZookeeperRepository) {
+			ZookeeperRepository repo = (ZookeeperRepository) this.repo;
+			for (Node node : nodes) {
+				new HostWatcher(this, repo);
+			}
+			try {
+				latch.await();
+			} catch (InterruptedException e) {
+				return ExitCode.FAILURE;
+			}
+		}
 		return ExitCode.SUCCESS;
-		
+
 	}
-	
+
+	private CountDownLatch latch = new CountDownLatch(1);
+
 	@Override
-	public synchronized void nodeAppears(String host, String ip){
+	public synchronized void nodeAppears(String host, String ip) {
 		boolean hasRemaining = false;
-		for(Node node: nodes){
-			if(node.getHostname().equals(host)){
+		for (Node node : nodes) {
+			if (node.getHostname().equals(host)) {
 				namingService.add(host, ip);
 				node.setProvisioned();
-			}else{
-				if(!node.isProvisioned()){
+			} else {
+				if (!node.isProvisioned()) {
 					hasRemaining = true;
 				}
 			}
 		}
-		if(!hasRemaining){
+		if (!hasRemaining) {
 			namingService.commit();
+			latch.countDown();
 		}
 	}
 

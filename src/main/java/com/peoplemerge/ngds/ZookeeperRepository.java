@@ -26,6 +26,8 @@
 package com.peoplemerge.ngds;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -96,13 +98,14 @@ public class ZookeeperRepository implements Watcher, ResourceStateRepository {
 
 	}
 
-	public void watch(String key, Watcher observer) {
+	public void watchData(String key, Watcher observer) {
 		try {/*
 			 * zk.create(rootZnode + "/" +
 			 * key,"".getBytes(),Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-			 */
-			Stat stat = zk.exists(rootZnode + "/" + key, observer);
-			System.err.println(stat.toString());
+			 **/
+			byte[] dataBytes = zk.getData(rootZnode + "/" + key, observer, null);
+			String data = new String(dataBytes);
+			System.err.println(data);
 		} catch (KeeperException e) {
 			// TODO Here we are swallowing the exceptions. FIXME!
 			e.printStackTrace();
@@ -112,7 +115,23 @@ public class ZookeeperRepository implements Watcher, ResourceStateRepository {
 		}
 
 	}
+	public List<String> watchChildren(String key, Watcher observer) {
+		try {/*
+			 * zk.create(rootZnode + "/" +
+			 * key,"".getBytes(),Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+			 **/
+			return zk.getChildren(rootZnode + "/" + key, observer);
+		} catch (KeeperException e) {
+			// TODO Here we are swallowing the exceptions. FIXME!
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new ArrayList<String>();
 
+	}
+	
 	public void delete(String key) {
 		try {
 			zk.delete(rootZnode + "/" + key, -1);

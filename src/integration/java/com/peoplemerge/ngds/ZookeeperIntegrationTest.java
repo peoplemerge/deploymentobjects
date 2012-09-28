@@ -47,7 +47,7 @@ public class ZookeeperIntegrationTest {
 		}
 
 	@Test
-	public void testWatcherCalled() throws InterruptedException, KeeperException{
+	public void testWatcherCalledOnDataChange() throws InterruptedException, KeeperException{
 		// create an node with path /testing/watch with data "before"
 		String before = "before";
 		String key = "watchertest";
@@ -57,17 +57,41 @@ public class ZookeeperIntegrationTest {
 		repo.save(key, before);
 		// add a watcher to the node
 		
-		repo.watch(key, observer);
+		repo.watchData(key, observer);
 		// modify the node's data
 		String after = "after";
 		repo.save(key, after);
-		// delete the node
-		repo.delete(key);
 		Thread.sleep(2000);
 		// verify the watcher has been called
 		verify(observer).process(argThat(new IsWatch()));
+		// delete the node
+		repo.delete(key);
 	}
 	
+
+	@Test
+	public void testWatcherCalledOnChildrenAdded() throws InterruptedException, KeeperException{
+		// create an node with path /testing/watch with data "before"
+		String data = "before";
+		String parent = "watchertest2";
+		String child = parent + "/child";
+		Watcher observer = mock(Watcher.class);
+		//Stat stat = repo.getZookeeper().exists("/ngds" + "/" + key, observer);
+
+		repo.save(parent, data);
+		
+		// add a watcher to the node
+		repo.watchChildren(parent, observer);
+		
+		// add a child node
+		repo.save(child, data);
+		Thread.sleep(2000);
+		// verify the watcher has been called
+		verify(observer).process(argThat(new IsWatch()));
+		// delete the nodes
+		repo.delete(child);
+		repo.delete(parent);
+	}
 	
 	
 	

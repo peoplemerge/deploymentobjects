@@ -15,10 +15,11 @@ public class CreateEnvironmentIntegrationTest {
 		File tempRepo = File.createTempFile("repo", "yaml");
 		//tempRepo.deleteOnExit();
 		System.out.println("Should create repo to: " + tempRepo.getAbsolutePath());
-
-		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder("testclus", new YamlRepository(tempRepo.getAbsolutePath()))
+		
+		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder("env3host", new ZookeeperRepository("ino:2181"))
 				.withNodes(2, Type.SMALL, new Dom0("xen2", new NfsMount())).build();
 		ExitCode exit = command.execute();
 		assertEquals(ExitCode.SUCCESS, exit);
 	}
+	
 }

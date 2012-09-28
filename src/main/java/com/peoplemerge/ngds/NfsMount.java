@@ -9,7 +9,7 @@ public class NfsMount implements Storage {
 	// probably need storage, right? But storage has different uses.
 	// Also this is all hardcoded
 	public String getIp() {
-		return "192.168.10.107";
+		return "192.168.10.101";
 	}
 
 	public String getMountPoint() {
