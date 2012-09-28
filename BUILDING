@@ -26,3 +26,12 @@
 
 To build:
 mvn clean antlr3:antlr compile test
+
+On mac, when installing libvirt via macports, java can't seem to find the shared library:
+java.lang.UnsatisfiedLinkError: Unable to load library 'virt': dlopen(libvirt.dylib, 9): image not found
+To Fix, add to the environment:
+LD_LIBRARY_PATH=/opt/local/lib
+Also for libvirt connections, mac socket file locations are different, so append 
+?socket=path.  Ex: qemu+ssh://ino/system?socket=/var/run/libvirt/libvirt-sock"
+
+Some integration tests depend on libvirt and zookeeper to be installed and running.

@@ -26,14 +26,28 @@
 	<version>1.0-SNAPSHOT</version>
 	<name>The Next Generation Distributed System</name>
 	<url>http://www.peoplemerge.com</url>
+	<properties>
+		<jna.version>3.3.0</jna.version>
+	</properties>
 
 	<dependencies>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.10</version>
-			<scope>test</scope>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>${jna.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>${jna.version}</version>
+			<classifier>platform</classifier>
+		</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.10</version>
+				<scope>test</scope>
+			</dependency>
 		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr</artifactId>
@@ -74,12 +88,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.velocity</groupId>
-			<artifactId>velocity</artifactId>
-			<version>1.7</version>
-		</dependency>
-
-		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
@@ -92,7 +100,7 @@
 		<dependency>
 			<groupId>org.libvirt</groupId>
 			<artifactId>libvirt</artifactId>
-			<version>0.4.7</version>
+			<version>0.4.9</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -143,5 +151,16 @@
 			 -->
 			</snapshots>
 		</repository>
+		<repository>
+			<id>libvirt</id>
+			<name>Libvirt central</name>
+			<url>http://www.libvirt.org/maven2</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<!-- <updatePolicy>never</updatePolicy>
+			 -->
+			</snapshots>
+		</repository>
+
 	</repositories>
 </project>

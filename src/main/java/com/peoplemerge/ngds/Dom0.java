@@ -27,8 +27,17 @@ package com.peoplemerge.ngds;
 
 public class Dom0 extends Node implements NodePool {
 
+	
+	private ControlsMachines controller;
 	private Storage storage;
 
+	private synchronized ControlsMachines getController(){
+		if(controller == null){
+			controller = new LibvirtAdapter("qemu+ssh://"+ getHostname() +"/system?socket=/var/run/libvirt/libvirt-sock");
+		}
+		return controller;
+	}
+	
 	//TODO consider pushing up Storage constructor
 	public Dom0(String hostname, Storage storage) {
 		super(hostname);
@@ -39,6 +48,7 @@ public class Dom0 extends Node implements NodePool {
 		return "";
 	}
 
+	// TODO encapsulate better.  This domain class is anemic!
 	@Override
 	public Step createStep(Type type, String name) {
 		//TODO Critical - this is a big hack hardcoding these commands here.  They should really come from the grammar.
@@ -46,6 +56,29 @@ public class Dom0 extends Node implements NodePool {
 		Step step  = new Step(command, this);
 		return step;
 	}
+	// TODO need to rethink how this interface is used
+	@Override
+	public boolean pollForDomainToStart(String vm, int pollMs, int timeoutMs) {	
+		return getController().pollForDomainToStart(vm, pollMs, timeoutMs);
+	}
+
+	@Override
+	public boolean pollForDomainToStop(String vm, int pollMs, int timeoutMs) {
+		return getController().pollForDomainToStop(vm, pollMs, timeoutMs);
+	}
+
+	@Override
+	public boolean startHost(String vm) {
+		return getController().startHost(vm);
+	}
+
+	@Override
+	public boolean stopHost(String vm) {
+		return getController().stopHost(vm);
+
+	}
+	
+	
 	
 	
 	
