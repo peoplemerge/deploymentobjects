@@ -1,5 +1,5 @@
 install
-nfs --server=192.168.10.107 --dir=/media/software/linux/distributions/centos/6.3/os/i386
+nfs --server=192.168.10.101 --dir=/media/software/linux/distributions/centos/6.3/os/i386
 lang en_US.UTF-8
 keyboard us
 network --onboot yes --device eth0 --mtu=1500 --bootproto dhcp --ipv6 auto --hostname test1
@@ -14,9 +14,33 @@ zerombr
 autopart
 logging --host=192.168.10.105
 
-repo --name="CentOS"  --baseurl=nfs:192.168.10.107:/media/software/linux/distributions/centos/6.3/os/i386 --cost=100
+repo --name="CentOS"  --baseurl=nfs:192.168.10.101:/media/software/linux/distributions/centos/6.3/os/i386 --cost=100
+repo --name="PeopleMerge"  --baseurl=nfs:192.168.10.101:/media/software/rpm/RPMS/i386 --cost=100
 
 %packages --nobase
 @core
+zookeeper
+libzookeeper
+libzookeeper-devel
+python-zookeeper
+nfs-utils
+openssh-clients
+openssh
+%post
+
+mkdir /mnt/temp
+echo mount 192.168.10.101:/media /mnt/temp >>/root/mount-out
+mount -o nolock 192.168.10.101:/media /mnt/temp 2>> /root/mount-out
+cp /mnt/temp/software/kickstart/createZkNodes.sh /root
+umount /mnt/temp
+
+cat >>/etc/hosts <<EOF
+192.168.10.101  heracles
+192.168.10.105  ino
+EOF
+
+cat >>/etc/rc.local <<EOF
+/root/createZkNodes.sh
+EOF
 
 %end
