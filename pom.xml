@@ -42,12 +42,12 @@
 			<version>${jna.version}</version>
 			<classifier>platform</classifier>
 		</dependency>
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>4.10</version>
-				<scope>test</scope>
-			</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr</artifactId>
@@ -101,6 +101,11 @@
 			<groupId>org.libvirt</groupId>
 			<artifactId>libvirt</artifactId>
 			<version>0.4.9</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.0.6</version>
 		</dependency>
 	</dependencies>
 	<build>
