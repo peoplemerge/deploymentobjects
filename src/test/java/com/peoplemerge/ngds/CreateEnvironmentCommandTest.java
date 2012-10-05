@@ -34,14 +34,16 @@ import java.net.URL;
 import org.apache.commons.io.FileUtils;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
 
 public class CreateEnvironmentCommandTest {
 
-	ResourceStateRepository mockrepo = mock(ResourceStateRepository.class);
+	ResourceStateRepository repo = mock(ResourceStateRepository.class);
 	Dispatchable dispatch = mock(Dispatchable.class);
 	NodePool pool = mock(NodePool.class);
 	NamingService namingService = mock(NamingService.class);
 	KickstartServer kickstartServer = mock(KickstartServer.class);
+	Logger logger =  mock(Logger.class);
 
 	// "Create a new environment called development using 1 small nodes from dom0."
 	// Step to figure out where to create the node based on the dom0s in the
@@ -49,7 +51,7 @@ public class CreateEnvironmentCommandTest {
 	// Step to use a connection method to connect to the dom0 and issue command
 	// to create the node
 	// Step to add the node to the naming service
-	// Step to add the environment to the MockRepo
+	// Step to add the environment to the repo
 
 	@Test
 	public void createOneNode() throws Exception {
@@ -67,7 +69,7 @@ public class CreateEnvironmentCommandTest {
 		verify(pool).createStep(eq(Node.Type.SMALL), anyString());
 		verify(dispatch).dispatch(dummyStep);
 
-		verify(mockrepo).save("environments.test", "test1");
+		verify(repo).save("environments/test", "test1");
 
 	}
 
@@ -75,12 +77,22 @@ public class CreateEnvironmentCommandTest {
 		CreateEnvironmentCommand.Builder createCommandBuilder = builder(numNodes);
 
 		CreateEnvironmentCommand command = createCommandBuilder.build();
+		dispatchSuccessful();
 		return command;
+	}
+
+	private void dispatchSuccessful() {
+		try {
+			when(dispatch.dispatch(any(Step.class))).thenReturn(ExitCode.SUCCESS);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private CreateEnvironmentCommand.Builder builder(int numNodes) {
 		CreateEnvironmentCommand.Builder createCommandBuilder = new CreateEnvironmentCommand.Builder(
-				"test", mockrepo);
+				"test", repo);
 		createCommandBuilder.withNodes(numNodes, Node.Type.SMALL, pool);
 		// TODO the dispatch method should probably be control-inverted.
 		createCommandBuilder.withDispatch(dispatch);
@@ -98,7 +110,7 @@ public class CreateEnvironmentCommandTest {
 		ExitCode exitCode = command.execute();
 		assertEquals(ExitCode.SUCCESS, exitCode);
 
-		verify(mockrepo).save("environments.test", "test1,test2");
+		verify(repo).save("environments/test", "test1,test2");
 
 	}
 
@@ -108,6 +120,7 @@ public class CreateEnvironmentCommandTest {
 		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
 		when(pool.createStep(eq(Node.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
+		//when(repo)
 		/*
 		 * need to think more about how this will work outside of a test
 		 * verify(namingService).add("test1", "10.0.1.1");
@@ -136,6 +149,7 @@ public class CreateEnvironmentCommandTest {
 		CreateEnvironmentCommand command = builder.build();
 
 		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		dispatchSuccessful();
 		when(pool.createStep(eq(Node.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 
@@ -154,26 +168,40 @@ public class CreateEnvironmentCommandTest {
 
 	}
 
-	@Ignore
 	@Test
 	public void allStepsWriteLogs() {
+		// TODO for all of the major functions of the command, something should
+		// be logged. An abstraction should be developed that captures all of
+		// this. There are currently two abstractions that hold execution and
+		// can capture a log: Executable and Step. Steps that are executed do
+		// contain an output field.
+		CreateEnvironmentCommand.Builder builder = builder(1);
+		builder.withLogger(logger);
+		CreateEnvironmentCommand command = builder.build();
+
+		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		when(pool.createStep(eq(Node.Type.SMALL), anyString())).thenReturn(
+				dummyStep);
+		command.execute();
+		verify(logger).info("Writing kickstart for test1");
 	}
 
 	@Ignore
 	@Test
 	public void history() {
 		// TODO every time a command is run, a record of the run and all details
-		// may be kept so it can be subsequently viewed
+		// may be kept so it can be subsequently viewed. This should persist the
+		// object model that was instantiated, exit codes, and logs. If there
+		// was a script interpreted by antlr, it would be great to persist that,
+		// but how?
 	}
 
 	@Test
 	public void zookeeperNodeAppears() {
-		// TODO when a node gets created on the dom0, after rebooting, will
-		// create the zookeeper nodes /ngds/hosts/hostname and
-		// /ngds/hosts/hostname/ip with the ip node containing the ip of the
+		// When a node gets created on the dom0, after rebooting, will
+		// create the zookeeper nodes /ngds/hosts/hostname the ip of the
 		// system that has just booted in the data of the node. We want a
-		// watcher to be called allowing the processing to continue. We also
-		// want the IP to be made available.
+		// watcher to be called allowing the processing to continue.
 
 		// There needs to be a barrier implemented so as nodes are being
 		// created, execution stops. Alternatively, we could have the
@@ -193,7 +221,6 @@ public class CreateEnvironmentCommandTest {
 		verify(namingService, times(1)).add(nodeName1, ip1);
 		verify(namingService, never()).commit();
 
-
 		String nodeName2 = "test2";
 		String ip2 = "192.168.0.156";
 		command.nodeAppears(nodeName2, ip2);
@@ -209,8 +236,9 @@ public class CreateEnvironmentCommandTest {
 	@Test
 	public void libvirt() {
 		// TODO when the znode goes away, the dom0 should wait until the node is
-		// "stopped" then restart it. This is coded but tests need to be written.
-		
+		// "stopped" then restart it. This is coded but tests need to be
+		// written.
+
 	}
 
 }

@@ -30,6 +30,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CreateEnvironmentCommand implements Executable,
 		HostWatcher.NodeAppears {
 
@@ -38,8 +41,9 @@ public class CreateEnvironmentCommand implements Executable,
 	private ResourceStateRepository repo;
 	private Dispatchable dispatchable;
 	private KickstartServer kickstartServer;
-	private Storage storage;
 	private NamingService namingService;
+	private Logger logger = LoggerFactory.getLogger(CreateEnvironmentCommand.class);
+
 
 	private CreateEnvironmentCommand() {
 	}
@@ -77,6 +81,11 @@ public class CreateEnvironmentCommand implements Executable,
 			return this;
 		}
 
+		public Builder withLogger(Logger logger) {
+			command.logger = logger;
+			return this;
+		}
+
 		public CreateEnvironmentCommand build() {
 			if (command.dispatchable == null) {
 				command.dispatchable = new JschDispatch(System
@@ -93,13 +102,17 @@ public class CreateEnvironmentCommand implements Executable,
 		}
 
 	}
+	private long startTime; 
 
 	@Override
 	public ExitCode execute() {
+		startTime = System.currentTimeMillis();
 		for (Node node : nodes) {
 			try {
+				logger.info("Writing kickstart for "+ node.getHostname());
 				kickstartServer.writeKickstartFile(node.getHostname());
 			} catch (Exception e) {
+				logger.error(e.toString());
 				return ExitCode.FAILURE;
 			}
 		}
@@ -108,20 +121,29 @@ public class CreateEnvironmentCommand implements Executable,
 			Step step = node.getSource().createStep(node.getType(),
 					node.getHostname());
 			try {
-				dispatchable.dispatch(step);
+				logger.info("Dispatch "+ step);
+				ExitCode exitcode = dispatchable.dispatch(step);
+				if(exitcode != ExitCode.SUCCESS){
+					logger.error("Dispatch execution failed: " + step.getOutput());
+					return ExitCode.FAILURE;
+				}
 			} catch (Exception e) {
 				// TODO fail-fast behavior, alternatives would be desirable for
 				// users.
 				// Consider rollback
 				// Add finer controls than "failure"
+				logger.error("Exception dispatching " + e.toString());
 				return ExitCode.FAILURE;
 			}
 			dispatched.add(step);
 		}
 		for (Node node : nodes) {
 			// TODO extract these timing variables to the grammar
+			logger.info("Polling for "+ node + " to stop");
+
 			node.getSource()
 					.pollForDomainToStop(node.getHostname(), 500, 60000);
+			logger.info("Restarting "+ node);
 			node.getSource().startHost(node.getHostname());
 		}
 
@@ -133,8 +155,10 @@ public class CreateEnvironmentCommand implements Executable,
 			nodeNames += nodes.get(i);
 		}
 		try {
-			repo.save("environments." + name, nodeNames);
+			logger.info("Saving "+ name +" to repo " + repo);
+			repo.save("environments/" + name, nodeNames);
 		} catch (Exception e) {
+			logger.error(e.toString());
 			return ExitCode.FAILURE;
 		}
 
@@ -144,14 +168,19 @@ public class CreateEnvironmentCommand implements Executable,
 		if (repo instanceof ZookeeperRepository) {
 			ZookeeperRepository repo = (ZookeeperRepository) this.repo;
 			for (Node node : nodes) {
+				//TODO do nothing with node? Not sure we need to loop here.
 				new HostWatcher(this, repo);
 			}
 			try {
+				logger.info("Waiting for nodes to write to Zookeeper");
 				latch.await();
 			} catch (InterruptedException e) {
+				logger.error(e.toString());
 				return ExitCode.FAILURE;
 			}
 		}
+		long duration = (System.currentTimeMillis() - startTime)/1000;
+		logger.info("Operation completed in " + duration + "s");
 		return ExitCode.SUCCESS;
 
 	}
@@ -163,6 +192,7 @@ public class CreateEnvironmentCommand implements Executable,
 		boolean hasRemaining = false;
 		for (Node node : nodes) {
 			if (node.getHostname().equals(host)) {
+				logger.info("Node has been provisioned: " + node);
 				namingService.add(host, ip);
 				node.setProvisioned();
 			} else {
@@ -172,6 +202,7 @@ public class CreateEnvironmentCommand implements Executable,
 			}
 		}
 		if (!hasRemaining) {
+			logger.info("All nodes have been provisioned");
 			namingService.commit();
 			latch.countDown();
 		}
