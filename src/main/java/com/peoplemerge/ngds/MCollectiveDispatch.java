@@ -28,9 +28,9 @@ package com.peoplemerge.ngds;
 public class MCollectiveDispatch implements Dispatchable {
 
 	@Override
-	public void dispatch(Step step) {
+	public ExitCode dispatch(Step step) {
 		// TODO Auto-generated method stub
-		
+		return null;
 	}
 	
 }

@@ -42,8 +42,9 @@ public class JschDispatch implements Dispatchable {
 		this.userName = userName;
 	}
 
-	public void dispatch(Step step) throws Exception {
+	public ExitCode dispatch(Step step) throws Exception {
 		// Should use the runner, right?
+		ExitCode retval = ExitCode.SUCCESS;
 		for (Node node : step.getNodes()) {
 			session = jsch.getSession(userName, node.getHostname());
 			jsch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa");
@@ -57,6 +58,9 @@ public class JschDispatch implements Dispatchable {
 			((ChannelExec) channel).setCommand(step.getCommand().toString());
 			// TODO how to integration test?
 			InputStream in = channel.getInputStream();
+			
+			InputStream ext = channel.getExtInputStream();
+			
 
 			channel.connect();
 			byte[] tmp = new byte[1024];
@@ -68,22 +72,39 @@ public class JschDispatch implements Dispatchable {
 						break;
 					output += new String(tmp, 0, i);
 				}
-				//TODO This exit code should probably be returned.
+				// TODO output and error streams are being combined.
+				while (ext.available() > 0) {
+					int i = ext.read(tmp, 0, 1024);
+					if (i < 0)
+						break;
+					output += new String(tmp, 0, i);
+				}
+				// TODO This exit code should probably be returned.
 				if (channel.isClosed()) {
 					System.out.println("exit-status: "
 							+ channel.getExitStatus());
+					if (channel.getExitStatus() != 0) {
+						retval = ExitCode.FAILURE;
+					}
 					break;
 				}
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(100);
 				} catch (Exception ee) {
-					//TODO - think HARD what to do here, instead of swallowing ! ! !
+					// TODO - think HARD what to do here
+					System.out.println(ee.toString());
+					break;
 				}
 			}
 			channel.disconnect();
 			session.disconnect();
-			step.setOutput(output);
+			if (step.getOutput() != null) {
+				step.setOutput(step.getOutput() + "\n" + output);
+			} else {
+				step.setOutput(output);
+			}
 		}
+		return retval;
 	}
 
 }

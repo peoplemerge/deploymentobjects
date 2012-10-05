@@ -26,5 +26,5 @@
 package com.peoplemerge.ngds;
 
 public interface Dispatchable {
-	public void dispatch(Step step) throws Exception;
+	public ExitCode dispatch(Step step) throws Exception;
 }
