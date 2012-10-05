@@ -30,12 +30,19 @@ public class Dom0 extends Node implements NodePool {
 	
 	private ControlsMachines controller;
 	private Storage storage;
+	private String userAt = "";
 
 	private synchronized ControlsMachines getController(){
 		if(controller == null){
 			controller = new LibvirtAdapter("qemu+ssh://"+ getHostname() +"/system?socket=/var/run/libvirt/libvirt-sock");
 		}
 		return controller;
+	}
+	
+	public Dom0(String userName, String hostname, Storage storage) {
+		super(hostname);
+		userAt = userName + "@";
+		this.storage = storage;
 	}
 	
 	//TODO consider pushing up Storage constructor
@@ -52,7 +59,7 @@ public class Dom0 extends Node implements NodePool {
 	@Override
 	public Step createStep(Type type, String name) {
 		//TODO Critical - this is a big hack hardcoding these commands here.  They should really come from the grammar.
-		ScriptedCommand command = new ScriptedCommand("sudo /mnt/media/software/kickstart/launch.sh " + name + " " + storage.getMountPoint());
+		ScriptedCommand command = new ScriptedCommand("/mnt/media/software/kickstart/launch.sh " + name + " " + storage.getMountPoint());
 		Step step  = new Step(command, this);
 		return step;
 	}
@@ -78,7 +85,10 @@ public class Dom0 extends Node implements NodePool {
 
 	}
 	
-	
+	@Override
+	public String toString(){
+		return userAt + super.toString();
+	}
 	
 	
 	
