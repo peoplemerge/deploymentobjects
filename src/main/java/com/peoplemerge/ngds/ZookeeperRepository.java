@@ -48,7 +48,7 @@ public class ZookeeperRepository implements Watcher, ResourceStateRepository {
 
 	@Override
 	public void process(WatchedEvent event) {
-		// TODO handle errors
+		// TODO handle connection/disconnection
 		System.err.println(event.toString());
 
 	}
