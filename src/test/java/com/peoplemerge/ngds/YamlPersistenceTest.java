@@ -32,22 +32,22 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 
-public class YamlRepositoryTest {
+public class YamlPersistenceTest {
 
 	
-	YamlRepository repo = new YamlRepository();
+	YamlPersistence persistence = new YamlPersistence();
 	
 	@Test
 	public void saveString() throws Exception{
-		repo.save("key", "value");
-		Assert.assertEquals("{key: value}\n",repo.toString());
+		persistence.save(new Composite("key", "value"));
+		Assert.assertEquals("{key: value}\n",persistence.toString());
 	}
 	
 	@Test 
 	public void retrieveString() throws Exception{
-		repo.setContents("{key: value}\n");
-		String value = (String) repo.retrieve("key");
-		Assert.assertEquals("value",value);
+		persistence.setContents("{key: value}\n");
+		Composite value = persistence.retrieve("key");
+		Assert.assertEquals("value",value.getValue());
 		
 	}
 	
@@ -56,8 +56,8 @@ public class YamlRepositoryTest {
 		File file = File.createTempFile("yamlpersistenttestcase", ".yaml");
 		file.deleteOnExit();
 		String filename = file.getPath();
-		repo = new YamlRepository(filename);
-		repo.save("key", "value");
+		persistence = new YamlPersistence(filename);
+		persistence.save(new Composite("key", "value"));
 		String contents = FileUtils.readFileToString(file);
 		Assert.assertEquals("{key: value}\n", contents);
 	}

@@ -14,20 +14,20 @@ public class HostWatcher implements Watcher{
 		 * @param hostname
 		 * @param ip
 		 */
-		public void nodeAppears(String host, String ip);
+		public void nodeAppears(Node appeared);
 
 	}
 	
 	private NodeAppears callback;
-	private ZookeeperRepository zk;
+	private ZookeeperPersistence zk;
 	
-	public HostWatcher(NodeAppears callback, ZookeeperRepository zk){
+	public HostWatcher(NodeAppears callback, ZookeeperPersistence zk){
 		this.callback = callback;
 		this.zk = zk;
 		watchHosts();
 	}
 	private List<String> watchHosts(){
-		return zk.watchChildren("hosts", this);
+		return zk.watchChildren(new Composite("hosts", ""), this);
 	}
 	
 	List<String> previousHosts = new ArrayList<String>();
@@ -40,8 +40,9 @@ public class HostWatcher implements Watcher{
 			if(!previousHosts.contains(host)){
 				previousHosts.add(host);
 				String path = "hosts/" + host;
-				String ip = zk.retrieve(path);
-				callback.nodeAppears(host, ip);
+				Composite composite = zk.retrieve(path);
+				Node equivalent = new Node(composite);
+				callback.nodeAppears(equivalent);
 			}
 		}
 	}

@@ -33,12 +33,12 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreateEnvironmentCommand implements Executable,
-		HostWatcher.NodeAppears {
+public class CreateEnvironmentCommand implements Executable {
 
 	private List<Node> nodes = new ArrayList<Node>();
 	private String name;
-	private ResourceStateRepository repo;
+	//private Persistence persistence;
+	private EnvironmentRepository repo;
 	private Dispatchable dispatchable;
 	private KickstartServer kickstartServer;
 	private NamingService namingService;
@@ -53,7 +53,7 @@ public class CreateEnvironmentCommand implements Executable,
 		// "Create a new environment called development using 1 small nodes from dom0."
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand();
 
-		public Builder(String environmentName, ResourceStateRepository repo) {
+		public Builder(String environmentName, EnvironmentRepository repo) {
 			command.name = environmentName;
 			command.repo = repo;
 		}
@@ -137,6 +137,7 @@ public class CreateEnvironmentCommand implements Executable,
 			}
 			dispatched.add(step);
 		}
+		Environment environment = new Environment(name);
 		for (Node node : nodes) {
 			// TODO extract these timing variables to the grammar
 			logger.info("Polling for "+ node + " to stop");
@@ -145,67 +146,34 @@ public class CreateEnvironmentCommand implements Executable,
 					.pollForDomainToStop(node.getHostname(), 500, 60000);
 			logger.info("Restarting "+ node);
 			node.getSource().startHost(node.getHostname());
+			environment.addNode(node);
 		}
 
-		String nodeNames = "";
-		for (int i = 0; i < nodes.size(); i++) {
-			if (i != 0) {
-				nodeNames += ",";
-			}
-			nodeNames += nodes.get(i);
-		}
+		
 		try {
 			logger.info("Saving "+ name +" to repo " + repo);
-			repo.save("environments/" + name, nodeNames);
+			repo.save(environment);
 		} catch (Exception e) {
 			logger.error(e.toString());
 			return ExitCode.FAILURE;
 		}
 
-		// TODO test the concurrency and zk portions with simple mocks
-		// TODO rethink this part, instanceof looks like a hack, invert control
-		// would appear cleaner and more testable.  It violates OCP.
-		if (repo instanceof ZookeeperRepository) {
-			ZookeeperRepository repo = (ZookeeperRepository) this.repo;
-			for (Node node : nodes) {
-				//TODO do nothing with node? Not sure we need to loop here.
-				new HostWatcher(this, repo);
-			}
-			try {
-				logger.info("Waiting for nodes to write to Zookeeper");
-				latch.await();
-			} catch (InterruptedException e) {
-				logger.error(e.toString());
-				return ExitCode.FAILURE;
-			}
+		
+		
+		logger.info("Waiting for nodes to write to Zookeeper");
+		try {
+			repo.blockUntilProvisioned(environment);
+		} catch (InterruptedException e) {
+			logger.error(e.toString());
+			return ExitCode.FAILURE;
 		}
+		namingService.update(repo);
 		long duration = (System.currentTimeMillis() - startTime)/1000;
 		logger.info("Operation completed in " + duration + "s");
 		return ExitCode.SUCCESS;
 
 	}
 
-	private CountDownLatch latch = new CountDownLatch(1);
 
-	@Override
-	public synchronized void nodeAppears(String host, String ip) {
-		boolean hasRemaining = false;
-		for (Node node : nodes) {
-			if (node.getHostname().equals(host)) {
-				logger.info("Node has been provisioned: " + node);
-				namingService.add(host, ip);
-				node.setProvisioned();
-			} else {
-				if (!node.isProvisioned()) {
-					hasRemaining = true;
-				}
-			}
-		}
-		if (!hasRemaining) {
-			logger.info("All nodes have been provisioned");
-			namingService.commit();
-			latch.countDown();
-		}
-	}
 
 }

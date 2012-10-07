@@ -1,4 +1,3 @@
-package com.peoplemerge.ngds;
 /************************************************************************
 ** 
 ** Copyright (C) 2011 Dave Thomas, PeopleMerge.
@@ -24,21 +23,15 @@ package com.peoplemerge.ngds;
 ** conditions contained in a signed written agreement between you and the 
 ** copyright owner.
 ************************************************************************/
-import com.peoplemerge.ngds.ResourceStateRepository;
+package com.peoplemerge.ngds;
 
+import java.io.IOException;
 
-public class MockRepo implements ResourceStateRepository {
+public interface Persistence {
 
-	@Override
-	public Object retrieve(String key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void save(String key, String element) {
-		// TODO Auto-generated method stub
-		
-	}
-
+	
+	//TODO make more precise exceptions
+	public void save(Composite element) throws Exception;
+	public Composite retrieve(String key) throws Exception;
+	
 }

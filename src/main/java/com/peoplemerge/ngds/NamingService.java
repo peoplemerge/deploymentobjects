@@ -29,10 +29,6 @@ package com.peoplemerge.ngds;
 
 public interface NamingService {
 
-	// TODO Awkward interfaces requires state, so it shouldn't be a Service (which
-	// implies stateless)!
-	void add(String host, String ip);
-
-	void commit();
+	void update(EnvironmentRepository repo);
 
 }

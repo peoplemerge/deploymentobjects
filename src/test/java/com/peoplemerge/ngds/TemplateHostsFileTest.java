@@ -1,7 +1,11 @@
 package com.peoplemerge.ngds;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
-import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import junit.framework.Assert;
 
@@ -12,41 +16,55 @@ import org.junit.Test;
 
 public class TemplateHostsFileTest {
 
-	@Ignore
+	
+	/*
 	@Test
 	public void createHostsUsingOneEnvironment() throws Exception{
-		Environment environment = new Environment();
+		Environment environment = new Environment("testhost");
+		environment.addNode(new Node("testhost1", "192.16.0.2"));
 		File actual = File.createTempFile("hosts", "");
 		TemplateHostsFile hostsFile = new TemplateHostsFile(actual);
-		hostsFile.addAll(environment);
+		hostsFile.update(environment);
 		//Write HostsFileTest?
 		String contents = hostsFile.toString();
-		Assert.assertEquals("192.168.0.2 testhost\n", contents);
+		Assert.assertEquals("192.168.0.2 testhost1\n", contents);
 	}
-	
+	*/
 
-	@Ignore
 	@Test
 	public void createHostsUsingAllEnvironmentsInRepository() throws Exception{
-		ResourceStateRepository repo = new YamlRepository();
+		EnvironmentRepository repo = mock(EnvironmentRepository.class);
 		File actual = File.createTempFile("hosts", "");
-		TemplateHostsFile hostsFile = new TemplateHostsFile(actual);
-		hostsFile.addAll(repo);
+		TemplateHostsFile hostsFile = new TemplateHostsFile(actual, "test-hostsfile.tmpl");
+		Environment env1 = new Environment("env1");
+		env1.addNode(new Node("env1host1", "192.168.0.10"));
+		env1.addNode(new Node("env1host2", "192.168.0.11"));
+		Environment env2 = new Environment("env2");
+		env2.addNode(new Node("env2host1", "192.168.0.20"));
+	
+		List<Environment> environments = new LinkedList<Environment>();
+		environments.add(env1);
+		environments.add(env2);
+		
+		when(repo.getAll()).thenReturn(environments);
+
+		hostsFile.update(repo);
 		//Write HostsFileTest?
-		String contents = hostsFile.toString();
-		Assert.assertEquals("192.168.0.10 host1env1\n192.168.0.11 host2env1\n192.168.0.20 host1env2\n", contents);		
+		String contents = FileUtils.readFileToString(actual);
+		Assert.assertEquals("192.168.0.10 env1host1\n192.168.0.11 env1host2\n192.168.0.20 env2host1\n", contents);		
 	}
 	
 	@Ignore
 	@Test
 	public void includeStaticEntry(){
-		ResourceStateRepository repo = new YamlRepository();
+		Persistence repo = new YamlPersistence();
 		TemplateHostsFile hostsFile = new TemplateHostsFile();
 		//Write HostsFileTest?
 		String contents = hostsFile.toString();
 		Assert.assertEquals("127.0.0.1 localhost\n192.168.0.10 host1env1\n", contents);		
 	}
 	
+	/*
 	@Test
 	public void savesCreateCallsToFile() throws Exception{
 		File actual = File.createTempFile("hosts", "");
@@ -61,7 +79,7 @@ public class TemplateHostsFileTest {
 
 		Assert.assertEquals("192.168.0.10 env1host1\n192.168.0.11 env1host2\n192.168.0.20 env2host1\n", contents);		
 	}
-	
+	*/
 
 	
 

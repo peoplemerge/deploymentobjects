@@ -33,17 +33,17 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
-public class YamlRepository implements ResourceStateRepository {
+public class YamlPersistence implements Persistence{
 
 	private Yaml yaml = new Yaml();
 	private String contents = "";
 	private File yamlFile;
 	
-	public YamlRepository(){
+	public YamlPersistence(){
 		contents = yaml.dump(new HashMap());
 	}
 
-	public YamlRepository(String location) throws IOException{
+	public YamlPersistence(String location) throws IOException{
 		yamlFile = new File(location);
 		if(!yamlFile.exists()){
 			yamlFile.createNewFile();
@@ -55,21 +55,22 @@ public class YamlRepository implements ResourceStateRepository {
 		}
 	}
 
-	public String retrieve(String key) throws IOException {
+	public Composite retrieve(String key) throws IOException {
 		if(yamlFile != null){
 			contents = FileUtils.readFileToString(yamlFile);
 		}
 		Map map = (Map) yaml.load(contents);
-		return  map.get(key).toString();
+		String data =  map.get(key).toString();
+		Composite retval = new Composite(key, data);
+		return retval;
 	}
 
-	@Override
-	public synchronized void save(String key, String element) throws IOException {
+	public synchronized void save(Composite composite) throws IOException {
 		if(yamlFile != null){
 			contents = FileUtils.readFileToString(yamlFile);
 		}
 		Map map = (Map) yaml.load(contents);
-		map.put(key, element);
+		map.put(composite.getKey(), composite.getValue());
 		contents = yaml.dump(map);
 		if(yamlFile != null){
 			FileUtils.writeStringToFile(yamlFile, contents);

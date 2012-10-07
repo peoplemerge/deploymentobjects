@@ -37,10 +37,21 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
-public class ZookeeperRepository implements Watcher, ResourceStateRepository {
+public class ZookeeperPersistence implements Persistence, Watcher {
 
 	private ZooKeeper zk;
 	private String rootZnode = "/ngds";
+	private boolean recurse = true;
+
+	/*
+	 * no good reason to enable these methods yet 
+	 * 
+	 * 
+	 * public boolean isRecursive() {
+	 * return recurse; }
+	 * 
+	 * public void setRecursive(boolean recurse) { this.recurse = recurse; }
+	 */
 
 	public ZooKeeper getZookeeper() {
 		return zk;
@@ -50,21 +61,27 @@ public class ZookeeperRepository implements Watcher, ResourceStateRepository {
 	public void process(WatchedEvent event) {
 		// TODO handle connection/disconnection
 		System.err.println(event.toString());
-
 	}
 
-	public ZookeeperRepository(String zookeeperConnectString)
+	public ZookeeperPersistence(String zookeeperConnectString)
 			throws IOException {
 		zk = new ZooKeeper(zookeeperConnectString, 3000, this);
-
 	}
 
-	@Override
-	public String retrieve(String key) {
+	public Composite retrieve(String key) {
 		Stat stat = null;
+		String path = rootZnode + "/" + key;
 		try {
-			byte[] bytearray = zk.getData(rootZnode + "/" + key, false, stat);
-			String retval = new String(bytearray);
+			byte[] bytearray = zk.getData(path, false, stat);
+			String data = new String(bytearray);
+			Composite retval = new Composite(key, data);
+			if (recurse) {
+				List<String> children = zk.getChildren(path, false, stat);
+				for (String childname : children) {
+					Composite child = retrieve(key + "/" + childname);
+					retval.addChild(child);
+				}
+			}
 			return retval;
 		} catch (KeeperException e) {
 			// TODO Auto-generated catch block
@@ -76,18 +93,23 @@ public class ZookeeperRepository implements Watcher, ResourceStateRepository {
 		return null;
 	}
 
-	@Override
-	public void save(String key, String element) {
+	public void save(Composite element) {
 		try {
-			Stat stat = zk.exists(rootZnode + "/" + key, false);
+			Stat stat = zk.exists(rootZnode + "/" + element.getKey(), false);
 			if (stat == null) {
-				zk.create(rootZnode + "/" + key, element.getBytes(),
-						Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+				zk.create(rootZnode + "/" + element.getKey(), element
+						.getValue().getBytes(), Ids.OPEN_ACL_UNSAFE,
+						CreateMode.PERSISTENT);
 			} else {
 				int version = stat.getVersion();
-				zk.setData(rootZnode + "/" + key, element.getBytes(), version);
+				zk.setData(rootZnode + "/" + element.getKey(), element
+						.getValue().getBytes(), version);
 			}
-
+			if (recurse) {
+				for (Composite child : element.getChildren()) {
+					save(child);
+				}
+			}
 		} catch (KeeperException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -102,8 +124,9 @@ public class ZookeeperRepository implements Watcher, ResourceStateRepository {
 		try {/*
 			 * zk.create(rootZnode + "/" +
 			 * key,"".getBytes(),Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-			 **/
-			byte[] dataBytes = zk.getData(rootZnode + "/" + key, observer, null);
+			 */
+			byte[] dataBytes = zk
+					.getData(rootZnode + "/" + key, observer, null);
 			String data = new String(dataBytes);
 			System.err.println(data);
 		} catch (KeeperException e) {
@@ -115,12 +138,14 @@ public class ZookeeperRepository implements Watcher, ResourceStateRepository {
 		}
 
 	}
-	public List<String> watchChildren(String key, Watcher observer) {
+
+	public List<String> watchChildren(Composite composite, Watcher observer) {
 		try {/*
 			 * zk.create(rootZnode + "/" +
 			 * key,"".getBytes(),Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-			 **/
-			return zk.getChildren(rootZnode + "/" + key, observer);
+			 */
+			return zk.getChildren(rootZnode + "/" + composite.getKey(),
+					observer);
 		} catch (KeeperException e) {
 			// TODO Here we are swallowing the exceptions. FIXME!
 			e.printStackTrace();
@@ -131,10 +156,18 @@ public class ZookeeperRepository implements Watcher, ResourceStateRepository {
 		return new ArrayList<String>();
 
 	}
-	
-	public void delete(String key) {
+
+	public void delete(Composite toDelete) {
 		try {
-			zk.delete(rootZnode + "/" + key, -1);
+			if (recurse) {
+				// annihilate all ancestors
+				for (Composite child : toDelete.getChildren()) {
+					delete(child);
+				}
+			} else {
+				// TODO throw exception if there are any children
+			}
+			zk.delete(rootZnode + "/" + toDelete.getKey(), -1);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

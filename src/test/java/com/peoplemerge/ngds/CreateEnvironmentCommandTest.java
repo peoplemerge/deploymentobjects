@@ -38,7 +38,8 @@ import org.slf4j.Logger;
 
 public class CreateEnvironmentCommandTest {
 
-	ResourceStateRepository repo = mock(ResourceStateRepository.class);
+	//Persistence persistence = mock(Persistence.class);
+	EnvironmentRepository repo = mock(EnvironmentRepository.class);
 	Dispatchable dispatch = mock(Dispatchable.class);
 	NodePool pool = mock(NodePool.class);
 	NamingService namingService = mock(NamingService.class);
@@ -68,8 +69,9 @@ public class CreateEnvironmentCommandTest {
 		assertEquals(ExitCode.SUCCESS, exitCode);
 		verify(pool).createStep(eq(Node.Type.SMALL), anyString());
 		verify(dispatch).dispatch(dummyStep);
-
-		verify(repo).save("environments/test", "test1");
+		Environment expected = new Environment("test");
+		expected.addNode(new Node("test1", Node.Type.SMALL, pool));
+		verify(repo).save(eq(expected));
 
 	}
 
@@ -109,8 +111,10 @@ public class CreateEnvironmentCommandTest {
 				dummyStep);
 		ExitCode exitCode = command.execute();
 		assertEquals(ExitCode.SUCCESS, exitCode);
-
-		verify(repo).save("environments/test", "test1,test2");
+		Environment expected = new Environment("test");
+		expected.addNode(new Node("test1", Node.Type.SMALL, pool));
+		expected.addNode(new Node("test2", Node.Type.SMALL, pool));
+		verify(repo).save(eq(expected));
 
 	}
 
@@ -194,42 +198,6 @@ public class CreateEnvironmentCommandTest {
 		// object model that was instantiated, exit codes, and logs. If there
 		// was a script interpreted by antlr, it would be great to persist that,
 		// but how?
-	}
-
-	@Test
-	public void zookeeperNodeAppears() {
-		// When a node gets created on the dom0, after rebooting, will
-		// create the zookeeper nodes /ngds/hosts/hostname the ip of the
-		// system that has just booted in the data of the node. We want a
-		// watcher to be called allowing the processing to continue.
-
-		// There needs to be a barrier implemented so as nodes are being
-		// created, execution stops. Alternatively, we could have the
-		// asynchronous notifications continue the execution. That would
-		// increase coupling between the methods but mean this could run
-		// single-threaded. I suspect it will make command execution failover
-		// easier in the future.
-
-		CreateEnvironmentCommand.Builder createCommandBuilder = builder(2);
-
-		createCommandBuilder.withNamingService(namingService);
-		CreateEnvironmentCommand command = createCommandBuilder.build();
-		String nodeName1 = "test1";
-		String ip1 = "192.168.0.155";
-		command.nodeAppears(nodeName1, ip1);
-		// The hosts file should be called but not yet committed
-		verify(namingService, times(1)).add(nodeName1, ip1);
-		verify(namingService, never()).commit();
-
-		String nodeName2 = "test2";
-		String ip2 = "192.168.0.156";
-		command.nodeAppears(nodeName2, ip2);
-		// the hosts file should be called again.
-		verify(namingService, times(1)).add(nodeName2, ip2);
-
-		// If all nodes have called back, the hosts file should be committed.
-		verify(namingService, times(1)).commit();
-
 	}
 
 	@Ignore

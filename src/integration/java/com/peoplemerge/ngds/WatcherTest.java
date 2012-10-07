@@ -13,16 +13,19 @@ public class WatcherTest {
 		// TODO when the watcher is called, that means there is a new node that
 		// has been created. We need to get it's IP back to
 		// CreateEnvironmentCommand
-		ZookeeperRepository repo = new ZookeeperRepository("localhost:2181");
-		HostWatcher watcher = new HostWatcher(callback, repo);
+		ZookeeperPersistence repo = new ZookeeperPersistence("localhost:2181");
+		new HostWatcher(callback, repo);
 		String host = "watchertest".intern();
 		String ip = "192.168.10.111".intern();
+		Composite composite = new Composite("hosts/" + host, ip);
+		Node node = new Node(composite);
+
 		try {
-			repo.save("hosts/" + host, ip);
+			repo.save(composite);
 			Thread.sleep(2000);
-			verify(callback).nodeAppears(eq(host), eq(ip));
+			verify(callback).nodeAppears(eq(node));
 		} finally {
-			repo.delete("hosts/watchertest");
+			repo.delete(composite);
 		}
 	}
 }
