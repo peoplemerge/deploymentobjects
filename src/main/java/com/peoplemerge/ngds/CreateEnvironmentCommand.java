@@ -36,14 +36,15 @@ import org.slf4j.LoggerFactory;
 public class CreateEnvironmentCommand implements Executable {
 
 	private List<Node> nodes = new ArrayList<Node>();
-	private String name;
-	//private Persistence persistence;
+	private String environmentName;
+	// private Persistence persistence;
 	private EnvironmentRepository repo;
 	private Dispatchable dispatchable;
 	private KickstartServer kickstartServer;
 	private NamingService namingService;
-	private Logger logger = LoggerFactory.getLogger(CreateEnvironmentCommand.class);
-
+	private Logger logger = LoggerFactory
+			.getLogger(CreateEnvironmentCommand.class);
+	public ConfigurationManagement configurationManagement;
 
 	private CreateEnvironmentCommand() {
 	}
@@ -54,13 +55,19 @@ public class CreateEnvironmentCommand implements Executable {
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand();
 
 		public Builder(String environmentName, EnvironmentRepository repo) {
-			command.name = environmentName;
+			command.environmentName = environmentName;
 			command.repo = repo;
 		}
 
-		public Builder withNodes(int quantity, Node.Type type, NodePool pool) {
+		public Builder withNodes(int quantity, Node.Type type, NodePool pool,
+				Role... roles) {
 			for (int i = 1; i <= quantity; i++) {
-				Node node = new Node(command.name + i, type, pool);
+				String roleName = "";
+				for (Role role : roles) {
+					roleName += role.getName();
+				}
+				Node node = new Node(command.environmentName + roleName + i,
+						"peoplemerge.com", type, pool, roles);
 				command.nodes.add(node);
 			}
 			return this;
@@ -86,14 +93,23 @@ public class CreateEnvironmentCommand implements Executable {
 			return this;
 		}
 
+		public Builder withConfigurationManagement(ConfigurationManagement cm) {
+			command.configurationManagement = cm;
+			return this;
+		}
+
 		public CreateEnvironmentCommand build() {
 			if (command.dispatchable == null) {
 				command.dispatchable = new JschDispatch(System
 						.getProperty("user.name"));
 			}
+			if (command.configurationManagement == null) {
+				command.configurationManagement = new NoConfigurationManagement();
+			}
 			if (command.kickstartServer == null) {
 				command.kickstartServer = new KickstartServer(
-						"/mnt/media/software/kickstart", new NfsMount());
+						"/mnt/media/software/kickstart", new NfsMount(),
+						command.configurationManagement);
 			}
 			if (command.namingService == null) {
 				command.namingService = new TemplateHostsFile();
@@ -102,14 +118,15 @@ public class CreateEnvironmentCommand implements Executable {
 		}
 
 	}
-	private long startTime; 
+
+	private long startTime;
 
 	@Override
 	public ExitCode execute() {
 		startTime = System.currentTimeMillis();
 		for (Node node : nodes) {
 			try {
-				logger.info("Writing kickstart for "+ node.getHostname());
+				logger.info("Writing kickstart for " + node.getHostname());
 				kickstartServer.writeKickstartFile(node.getHostname());
 			} catch (Exception e) {
 				logger.error(e.toString());
@@ -121,10 +138,11 @@ public class CreateEnvironmentCommand implements Executable {
 			Step step = node.getSource().createStep(node.getType(),
 					node.getHostname());
 			try {
-				logger.info("Dispatch "+ step);
+				logger.info("Dispatch " + step);
 				ExitCode exitcode = dispatchable.dispatch(step);
-				if(exitcode != ExitCode.SUCCESS){
-					logger.error("Dispatch execution failed: " + step.getOutput());
+				if (exitcode != ExitCode.SUCCESS) {
+					logger.error("Dispatch execution failed: "
+							+ step.getOutput());
 					return ExitCode.FAILURE;
 				}
 			} catch (Exception e) {
@@ -137,29 +155,33 @@ public class CreateEnvironmentCommand implements Executable {
 			}
 			dispatched.add(step);
 		}
-		Environment environment = new Environment(name);
+		Environment environment = new Environment(environmentName);
 		for (Node node : nodes) {
 			// TODO extract these timing variables to the grammar
-			logger.info("Polling for "+ node + " to stop");
+			logger.info("Polling for " + node + " to stop");
 
-			node.getSource()
-					.pollForDomainToStop(node.getHostname(), 500, 60000);
-			logger.info("Restarting "+ node);
+			node.getSource().pollForDomainToStop(node.getHostname(), 500,
+					600000);
+			logger.info("Restarting " + node);
 			node.getSource().startHost(node.getHostname());
+			
+			logger.info("Signing puppet cert for " + node);
+
+			Step step = configurationManagement.postCompleteStep(node);
+			ExitCode exitcode;
+			try {
+				exitcode = dispatchable.dispatch(step);
+			} catch (Exception e) {
+				logger.error("Exception dispatching " + e.toString());
+				return ExitCode.FAILURE;
+			}
+			if (exitcode != ExitCode.SUCCESS) {
+				logger.error("Dispatch execution failed: " + step.getOutput());
+				return ExitCode.FAILURE;
+			}
 			environment.addNode(node);
 		}
 
-		
-		try {
-			logger.info("Saving "+ name +" to repo " + repo);
-			repo.save(environment);
-		} catch (Exception e) {
-			logger.error(e.toString());
-			return ExitCode.FAILURE;
-		}
-
-		
-		
 		logger.info("Waiting for nodes to write to Zookeeper");
 		try {
 			repo.blockUntilProvisioned(environment);
@@ -167,13 +189,53 @@ public class CreateEnvironmentCommand implements Executable {
 			logger.error(e.toString());
 			return ExitCode.FAILURE;
 		}
+		
+		try {
+			logger.info("Saving " + environmentName + " to repo " + repo);
+			repo.save(environment);
+		} catch (Exception e) {
+			logger.error(e.toString());
+			return ExitCode.FAILURE;
+		}
+
 		namingService.update(repo);
-		long duration = (System.currentTimeMillis() - startTime)/1000;
+
+		try {
+			logger.info("Updating " + configurationManagement);
+			Step step = configurationManagement.newEnvironment(repo);
+			ExitCode exitcode = dispatchable.dispatch(step);
+			if (exitcode != ExitCode.SUCCESS) {
+				logger.error("Dispatch execution failed: " + step.getOutput());
+				return ExitCode.FAILURE;
+			}
+
+		} catch (Exception e) {
+			logger.error(e.toString());
+			return ExitCode.FAILURE;
+		}
+
+		try {
+			for (Node node : nodes) {
+				logger.info("Using " + configurationManagement
+						+ " to complete node provisioning on " + node);
+				Step step = configurationManagement.nodeProvisioned(node);
+				ExitCode exitcode = dispatchable.dispatch(step);
+				if (exitcode != ExitCode.SUCCESS) {
+					logger.error("Dispatch execution failed: "
+							+ step.getOutput());
+					return ExitCode.FAILURE;
+				}
+			}
+
+		} catch (Exception e) {
+			logger.error(e.toString());
+			return ExitCode.FAILURE;
+		}
+
+		long duration = (System.currentTimeMillis() - startTime) / 1000;
 		logger.info("Operation completed in " + duration + "s");
 		return ExitCode.SUCCESS;
 
 	}
-
-
 
 }

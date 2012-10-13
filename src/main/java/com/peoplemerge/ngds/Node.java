@@ -26,6 +26,8 @@
 package com.peoplemerge.ngds;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -44,12 +46,23 @@ public class Node implements AcceptsCommands {
 
 	private String hostname;
 
+	private String domainname;
+	
+	public String getDomainname() {
+		return domainname;
+	}
+
+	public void setDomainname(String domainname) {
+		this.domainname = domainname;
+	}
+
 	private NodePool source;
 
 	private Boolean isProvisioned;
 
 	private String ip = null;
-
+	
+	private List<Role> roles = new LinkedList<Role>();
 	/**
 	 * TODO IP may change over time Ip is nullable to allow for provisioning
 	 * 
@@ -75,18 +88,37 @@ public class Node implements AcceptsCommands {
 		this.hostname = hostname;
 	}
 
-	public Node(String hostname, String ip) {
+	public Node(String hostname, String ip, Role... roles) {
 		this.hostname = hostname;
 		this.ip = ip;
 		isProvisioned = true;
+		this.roles.addAll(Arrays.asList(roles));
+	}
+	
+	public Node(String hostname, String domainname, String ip, Role... roles) {
+		this.hostname = hostname;
+		this.domainname = domainname;
+		this.ip = ip;
+		isProvisioned = true;
+		this.roles.addAll(Arrays.asList(roles));
 	}
 
+	//TODO use builder or factory when constructing nodes
 	// This constructor makes sense when provisioning Nodes
 	public Node(String hostname, Type type, NodePool source) {
 		this.hostname = hostname;
 		this.type = type;
 		this.source = source;
 	}
+	
+	// This constructor makes sense when provisioning Nodes
+	public Node(String hostname, String domainname, Type type, NodePool pool, Role... roles) {
+		this.hostname = hostname;
+		this.domainname = domainname;
+		this.type = type;
+		this.source = pool;
+		this.roles.addAll(Arrays.asList(roles));
+		}
 
 	// This constructor makes sense when using provisioned Nodes
 	public Node(String hostname, String ip, Type type, NodePool source) {
@@ -96,6 +128,7 @@ public class Node implements AcceptsCommands {
 		this.source = source;
 		isProvisioned = true;
 	}
+	
 	
 	public Node(Composite composite){
 		//TODO make this a factory, so composite.getKey throws some obvious exceptions
@@ -142,6 +175,12 @@ public class Node implements AcceptsCommands {
 		}
 		return isProvisioned;
 	}
+	public void addRole(Role role){
+		roles.add(role);
+	}
+	public List<Role> getRoles(){
+		return roles;
+	}
 
 	@Override
 	public boolean equals(Object obj) {
@@ -170,14 +209,17 @@ public class Node implements AcceptsCommands {
 		if (!(isProvisioned == null && rhs.isProvisioned == null)) {
 			builder.append(isProvisioned, rhs.isProvisioned);
 		}
-
+		if (!(domainname == null && rhs.domainname == null)) {
+			builder.append(domainname, rhs.domainname);
+		}
+		builder.append(roles, rhs.roles);
 		return builder.isEquals();
 	}
 
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(1217, 52345).append(type).append(hostname)
-				.append(source).append(ip).append(isProvisioned).toHashCode();
+				.append(source).append(ip).append(domainname).append(isProvisioned).toHashCode();
 	}
 
 }

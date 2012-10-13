@@ -30,7 +30,11 @@ import java.util.List;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-
+/**
+ * Aggregate root
+ * @author dave
+ *
+ */
 public class Environment {
 
 	private String name;
@@ -55,6 +59,24 @@ public class Environment {
 
 	public String toString() {
 		return name + ": " + nodes;
+	}
+	
+	public boolean containsHostNamed(String nodeName){
+		for(Node node : nodes){
+			if(node.getHostname().equals(nodeName)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public Node getNodeByName(String nodeName){
+		for(Node node : nodes){
+			if(node.getHostname().equals(nodeName)){
+				return node;
+			}
+		}
+		return null;
 	}
 
 	@Override

@@ -42,6 +42,8 @@ import org.apache.commons.io.FileUtils;
  * @author dave
  * 
  */
+
+//TODO Replace this strategy with puppet mechanism
 public class TemplateHostsFile implements NamingService {
 
 	private Template template = new VelocityTemplate();

@@ -24,7 +24,7 @@ package com.peoplemerge.ngds;
  * copyright owner.
  ************************************************************************/
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -149,7 +149,7 @@ public class CreateEnvironmentCommandTest {
 		String tempDir = new File(tempFile.getParent()).getAbsolutePath();
 		builder
 				.withKickstartServer(new KickstartServer(tempDir,
-						new NfsMount()));
+						new NfsMount(),new Puppet(new Node("puppetmaster1", "peoplemerge.com", "192.168.10.137"))));
 		CreateEnvironmentCommand command = builder.build();
 
 		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);

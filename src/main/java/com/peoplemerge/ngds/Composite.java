@@ -46,7 +46,7 @@ public class Composite {
 		if(children == null || children.size() == 0){
 			return key + ": " + value;
 		}
-		return children + ": " + key + ": " + value;
+		return  key + ": " + value + "... " + children;
 	}
 
 	@Override
@@ -78,5 +78,14 @@ public class Composite {
 	       append(children).
 	       toHashCode();
 	   }
+
+	public Composite getChild(String toFind) {
+		for(Composite child : children){
+			if(child.getKey().equals(toFind)){
+				return child;
+			}
+		}
+		return null;
+	}
 	
 }
