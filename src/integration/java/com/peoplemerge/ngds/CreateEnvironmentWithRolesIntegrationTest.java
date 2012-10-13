@@ -6,15 +6,17 @@ import org.junit.Test;
 
 import com.peoplemerge.ngds.Node.Type;
 
-public class CreateEnvironmentIntegrationTest {
+public class CreateEnvironmentWithRolesIntegrationTest {
 
 	@Test
-	public void createTestcluster() throws Exception {
+	public void createClusterWithRoles() throws Exception {
 
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
-				"puppet1env", new ZookeeperEnvironmentRepository(
-						new ZookeeperPersistence("ino:2181"))).withNodes(1,
-				Type.SMALL, new Dom0("root", "kowalski", new NfsMount()))
+				"role17", new ZookeeperEnvironmentRepository(
+						new ZookeeperPersistence("ino:2181"))).withNodes(2,
+				Type.SMALL, new Dom0("root", "kowalski", new NfsMount()),
+				new Role("web")).withNodes(1, Type.SMALL,
+				new Dom0("root", "kowalski", new NfsMount()), new Role("db"))
 				.withConfigurationManagement(
 						new Puppet(new Node("puppetmaster1", "peoplemerge.com",
 								"192.168.10.137"))).withDispatch(
@@ -23,5 +25,4 @@ public class CreateEnvironmentIntegrationTest {
 		assertEquals(ExitCode.SUCCESS, exit);
 
 	}
-
 }

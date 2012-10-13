@@ -38,6 +38,31 @@ public class ZookeeperIntegrationTest {
 		repo.delete(composite);
 	}
 
+	
+
+	@Test
+	public void testNestedDataSaved() {
+		// TODO consider if key/value is sufficient
+		// create an node with path /testing/simple with data "sample data"
+		String expected = "sample data";
+		String key = "parent";
+		String childKey = "parent/child";
+		Composite composite = new Composite(key, expected);
+		Composite inner = new Composite(childKey, expected);
+		composite.addChild(inner);
+		
+		repo.save(composite);
+		Composite parent = repo.retrieve(key);
+		Assert.assertEquals(expected, parent.getValue());
+		Assert.assertEquals(key, parent.getKey());
+		
+		Composite child = parent.getChildren().get(0);
+		Assert.assertEquals(childKey, child.getKey());
+		Assert.assertEquals(expected, child.getValue());
+		// delete the node
+		//repo.delete(inner);
+		repo.delete(composite);
+	}
 	class IsWatch extends ArgumentMatcher<WatchedEvent> {
 
 		public boolean matches(Object list) {
@@ -97,7 +122,7 @@ public class ZookeeperIntegrationTest {
 		// verify the watcher has been called
 		verify(observer).process(argThat(new IsWatch()));
 		// delete the nodes
-		repo.delete(child);
+		//repo.delete(child);
 		repo.delete(parent);
 	}
 
@@ -125,7 +150,7 @@ public class ZookeeperIntegrationTest {
 		// verify the watcher has been called
 		verify(observer).process(argThat(new IsWatch()));
 		// delete the nodes
-		repo.delete(child);
+		//repo.delete(child);
 		repo.delete(parent);
 	}
 

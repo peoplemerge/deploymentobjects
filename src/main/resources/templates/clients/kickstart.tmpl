@@ -16,6 +16,7 @@ logging --host=192.168.10.105
 
 repo --name="CentOS"  --baseurl=nfs:$ksmount/software/linux/distributions/centos/6.3/os/i386 --cost=100
 repo --name="PeopleMerge"  --baseurl=nfs:$ksmount/software/rpm/RPMS/i386 --cost=100
+$configmgt-repos
 
 %packages --nobase
 @core
@@ -26,6 +27,7 @@ python-zookeeper
 nfs-utils
 openssh-clients
 openssh
+$configmgt-packages
 %post
 
 mkdir /mnt/temp
@@ -39,8 +41,11 @@ cat >>/etc/hosts <<EOF
 192.168.10.105  ino
 EOF
 
+# TODO this is for zookeeper, we could make this optional someday, replaced with something else.
 cat >>/etc/rc.local <<EOF
 /root/createZkNodes.sh
 EOF
+
+$configmgt-post
 
 %end

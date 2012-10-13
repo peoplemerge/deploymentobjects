@@ -19,6 +19,7 @@ public class ZookeeperEnvironmentRepositoryTest {
 	private EnvironmentRepository repo = new ZookeeperEnvironmentRepository(
 			mock);
 
+	
 	@Test
 	public void testLookupByName() {
 		String environmentName = "testenv";
@@ -29,8 +30,11 @@ public class ZookeeperEnvironmentRepositoryTest {
 		Environment expectedEnv = new Environment(environmentName);
 		expectedEnv.addNode(expected);
 
-		Composite environment = new Composite(environmentName, hostname);
-		Composite host = new Composite(hostname, ip);
+		Composite environment = new Composite("environments/" + environmentName, hostname);
+		Composite roles = new Composite("environments/" + environmentName + "/roles","");
+		environment.addChild(roles);
+		
+		Composite host = new Composite("hosts/" + hostname, ip);
 		String envkey = "environments/" + environmentName;
 		when(mock.retrieve(envkey)).thenReturn(environment);
 		String hostkey = "hosts/" + hostname;
@@ -44,6 +48,107 @@ public class ZookeeperEnvironmentRepositoryTest {
 
 	}
 
+
+	@Test
+	public void testLookupWithDomainname() {
+		String environmentName = "testenv";
+		String hostname = "testenv1";
+		String ip = "192.168.0.5";
+		String domainnameStr = "example.com";
+		Node expected = new Node(hostname, ip);
+		expected.setDomainname(domainnameStr);
+		
+		Environment expectedEnv = new Environment(environmentName);
+		expectedEnv.addNode(expected);
+
+		Composite environment = new Composite("environments/" + environmentName, hostname);
+		Composite roles = new Composite("environments/" + environmentName + "/roles","");
+		environment.addChild(roles);
+		
+		Composite host = new Composite("hosts/" + hostname, ip);
+		Composite domainName = new Composite("hosts/" + hostname + "/domainname", domainnameStr);
+		host.addChild(domainName);
+		String envkey = "environments/" + environmentName;
+		when(mock.retrieve(envkey)).thenReturn(environment);
+		String hostkey = "hosts/" + hostname;
+		when(mock.retrieve(hostkey)).thenReturn(host);
+		Environment actualEnv = repo.lookupByName(environmentName);
+		assertEquals(actualEnv.getNodes().size(), 1);
+		Node actual = actualEnv.getNodes().get(0);
+		assertEquals(expected, actual);
+		assertEquals(expectedEnv, actualEnv);
+		//TODO verifyNoMoreInteractions(mock);
+
+	}
+
+	
+
+	@Test
+	public void testLookupWithRole(){
+		String environmentName = "testenv";
+		String hostname = "testenv1";
+		String ip = "192.168.0.5";
+		String roleName = "testrole";
+		Node expected = new Node(hostname, ip, new Role(roleName));
+		Environment expectedEnv = new Environment(environmentName);
+		expectedEnv.addNode(expected);
+		
+		Composite host = new Composite("hosts/" + hostname, ip);
+
+		Composite environment = new Composite("environments/" + environmentName, "");
+		Composite roles = new Composite("environments/" + environmentName + "/roles", "");
+		Composite testrole = new Composite("environments/" + environmentName + "/roles/" + roleName, hostname);
+		roles.addChild(testrole);
+		environment.addChild(roles);
+		
+		String envkey = "environments/" + environmentName;
+		when(mock.retrieve(envkey)).thenReturn(environment);
+
+		String hostkey = "hosts/" + hostname;
+		when(mock.retrieve(hostkey)).thenReturn(host);
+		Environment actualEnv = repo.lookupByName(environmentName);
+		assertEquals(actualEnv.getNodes().size(), 1);
+		Node actual = actualEnv.getNodes().get(0);
+		assertEquals(expected, actual);
+		assertEquals(expectedEnv, actualEnv);
+		//TODO verifyNoMoreInteractions(mock);
+	}
+	// TODO test for multiple roles
+
+	@Test
+	public void testLookupWithMultipleRoles(){
+		String environmentName = "testenv";
+		String hostname = "testenv1";
+		String ip = "192.168.0.5";
+		String roleName = "testrole1";
+		String roleName2 = "testrole2";
+		Node expected = new Node(hostname, ip, new Role(roleName), new Role(roleName2));
+		Environment expectedEnv = new Environment(environmentName);
+		expectedEnv.addNode(expected);
+		
+		Composite environment = new Composite("environments/" + environmentName, hostname);
+		Composite host = new Composite("hosts/" + hostname, ip);
+		Composite roles = new Composite("environments/" + environmentName +"/roles", "");
+		Composite testrole = new Composite("environments/" + environmentName +"/roles/" + roleName, hostname);
+		Composite testrole2 = new Composite("environments/" + environmentName +"/roles/" + roleName2, hostname);
+		roles.addChild(testrole);
+		roles.addChild(testrole2);
+		environment.addChild(roles);
+		
+
+		String envkey = "environments/" + environmentName;
+		when(mock.retrieve(envkey)).thenReturn(environment);
+		String hostkey = "hosts/" + hostname;
+		when(mock.retrieve(hostkey)).thenReturn(host);
+		Environment actualEnv = repo.lookupByName(environmentName);
+		assertEquals(actualEnv.getNodes().size(), 1);
+		Node actual = actualEnv.getNodes().get(0);
+		assertEquals(expected, actual);
+		assertEquals(expectedEnv, actualEnv);
+		//TODO verifyNoMoreInteractions(mock);
+	}
+	
+	
 	@Test
 	public void testGetAll() {
 		String firstStr = "first";
@@ -57,13 +162,15 @@ public class ZookeeperEnvironmentRepositoryTest {
 		List<Environment> expected = new LinkedList<Environment>();
 		{
 			Environment first = new Environment(firstStr);
-			Node first1 = new Node(first1Str, first1ipStr);
-			Node first2 = new Node(first2Str, first2ipStr);
+			Role firstRole = new Role(firstStr);
+			Node first1 = new Node(first1Str, first1ipStr, firstRole);
+			Node first2 = new Node(first2Str, first2ipStr, firstRole);
 			first.addNode(first1);
 			first.addNode(first2);
 
 			Environment second = new Environment(secondStr);
-			Node second1 = new Node(second1Str, second1ipStr);
+			Role secondRole = new Role(secondStr);
+			Node second1 = new Node(second1Str, second1ipStr, secondRole);
 			second.addNode(second1);
 
 			expected.add(first);
@@ -72,16 +179,25 @@ public class ZookeeperEnvironmentRepositoryTest {
 		// Composite root = new Composite("root","");
 		Composite environments = new Composite("environments", "");
 		{
-			Composite first = new Composite(firstStr, first1Str + ", "
-					+ first2Str);
-			Composite second = new Composite(secondStr, second1Str);
+			Composite first = new Composite("environments/" + firstStr, "");
+			Composite firstRoles = new Composite("environments/" + firstStr + "/roles", "");
+			Composite firstRole = new Composite("environments/" + firstStr + "/roles/" + firstStr, first1Str + ", " + first2Str);
+			firstRoles.addChild(firstRole);
+			first.addChild(firstRoles);
+			
+			Composite second = new Composite("environments/" + secondStr, "");
+			Composite secondRoles = new Composite("environments/" + secondStr + "/roles", "");
+			Composite secondRole = new Composite("environments/" + secondStr + "/roles/" + secondStr, second1Str);
+			secondRoles.addChild(secondRole);
+			second.addChild(secondRoles);
+
 			environments.addChild(first);
 			environments.addChild(second);
 		}
 
-		Composite first1Host = new Composite(first1Str, first1ipStr);
-		Composite first2Host = new Composite(first2Str, first2ipStr);
-		Composite second1Host = new Composite(second1Str, second1ipStr);
+		Composite first1Host = new Composite("hosts/" + first1Str, first1ipStr);
+		Composite first2Host = new Composite("hosts/" + first2Str, first2ipStr);
+		Composite second1Host = new Composite("hosts/" + second1Str, second1ipStr);
 
 		when(mock.retrieve("environments")).thenReturn(environments);
 		when(mock.retrieve("hosts/" + first1Str)).thenReturn(first1Host);
@@ -102,8 +218,11 @@ public class ZookeeperEnvironmentRepositoryTest {
 		String ip = "192.168.0.5";
 		Composite expectedEnvironment = new Composite("environments/"
 				+ environmentName, hostname);
+		Composite hasNoRoles = new Composite("environments/"
+				+ environmentName + "/roles", "");
+		expectedEnvironment.addChild(hasNoRoles);
 		Composite expectedHost = new Composite("hosts/" + hostname, ip);
-
+		
 		Node node = new Node(hostname, ip);
 		Environment env = new Environment(environmentName);
 		env.addNode(node);
@@ -117,12 +236,44 @@ public class ZookeeperEnvironmentRepositoryTest {
 	}
 
 	@Test
+	public void testSaveWithRoles() {
+		
+		String environmentName = "testenv";
+		String hostname = "testenv1";
+		String ip = "192.168.0.5";
+		String roleName = "testenvrole";
+		Composite expectedEnvironment = new Composite("environments/"
+				+ environmentName, "");
+		Composite roles = new Composite("environments/"
+				+ environmentName + "/roles", "");
+		Composite role = new Composite("environments/"
+				+ environmentName + "/roles/" + roleName, hostname);
+		roles.addChild(role);
+		expectedEnvironment.addChild(roles);
+		Composite expectedHost = new Composite("hosts/" + hostname, ip);
+
+		Node node = new Node(hostname, ip, new Role(roleName));
+		Environment env = new Environment(environmentName);
+		env.addNode(node);
+
+		repo.save(env);
+
+		verify(mock, times(1)).save(eq(expectedHost));
+		verify(mock, times(1)).save(eq(expectedEnvironment));
+		verifyNoMoreInteractions(mock);
+
+	}
+	
+	@Test
 	public void testSaveWithoutIp() {
 
 		String environmentName = "testenv";
 		String hostname = "testenv1";
 		Composite expectedEnvironment = new Composite("environments/"
 				+ environmentName, hostname);
+		Composite roles = new Composite("environments/"
+				+ environmentName + "/roles", "");
+		expectedEnvironment.addChild(roles);
 		Composite expectedHost = new Composite("hosts/" + hostname, "");
 
 		// In this test, node is different... no IP
@@ -136,6 +287,36 @@ public class ZookeeperEnvironmentRepositoryTest {
 		verify(mock, never()).save(eq(expectedHost));
 		// but do save the environment
 		verify(mock, times(1)).save(eq(expectedEnvironment));
+		verifyNoMoreInteractions(mock);
+	}
+	
+	@Test
+	public void testSaveWithDomainName() {
+
+		String environmentName = "testenv";
+		String hostname = "testenv1";
+		String ip = "192.168.1.232";
+		String domainname = "example.com";
+		
+		Composite expectedEnvironment = new Composite("environments/"
+				+ environmentName, hostname);
+		Composite roles = new Composite("environments/"
+				+ environmentName + "/roles", "");
+		expectedEnvironment.addChild(roles);
+		Composite expectedHost = new Composite("hosts/" + hostname, ip);
+		Composite expectedDomainname = new Composite("hosts/" + hostname + "/domainname", domainname);
+
+		Node node = new Node(hostname, ip);
+		node.setDomainname(domainname);
+		Environment env = new Environment(environmentName);
+		env.addNode(node);
+
+		repo.save(env);
+		
+
+		verify(mock, times(1)).save(eq(expectedEnvironment));
+		verify(mock, times(1)).save(eq(expectedHost));
+		verify(mock, times(1)).save(eq(expectedDomainname));
 		verifyNoMoreInteractions(mock);
 	}
 	
