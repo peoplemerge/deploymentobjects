@@ -70,7 +70,9 @@ public class CreateEnvironmentCommandTest {
 		verify(pool).createStep(eq(Node.Type.SMALL), anyString());
 		verify(dispatch).dispatch(dummyStep);
 		Environment expected = new Environment("test");
-		expected.addNode(new Node("test1", Node.Type.SMALL, pool));
+		Node expectedNode = new Node("test1", Node.Type.SMALL, pool);
+		expectedNode.setDomainname("peoplemerge.com");
+		expected.addNode(expectedNode);
 		verify(repo).save(eq(expected));
 
 	}
@@ -112,8 +114,12 @@ public class CreateEnvironmentCommandTest {
 		ExitCode exitCode = command.execute();
 		assertEquals(ExitCode.SUCCESS, exitCode);
 		Environment expected = new Environment("test");
-		expected.addNode(new Node("test1", Node.Type.SMALL, pool));
-		expected.addNode(new Node("test2", Node.Type.SMALL, pool));
+		Node expectedNode = new Node("test1", Node.Type.SMALL, pool);
+		expectedNode.setDomainname("peoplemerge.com");
+		expected.addNode(expectedNode);
+		Node expectedNode2 = new Node("test2", Node.Type.SMALL, pool);
+		expectedNode2.setDomainname("peoplemerge.com");
+		expected.addNode(expectedNode2);
 		verify(repo).save(eq(expected));
 
 	}
