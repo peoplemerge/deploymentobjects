@@ -73,6 +73,8 @@ capability returns [Node.Type type] : 'small' {$type = Node.Type.getSmall();} | 
 FABRIC : 'fabric';
 MCOLLECTIVE : 'mcollective';
 PUPPET : 'puppet';
+ZOOKEEPER : 'zookeeper';
+YAML : 'yaml';
 
 ID: ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 
@@ -107,7 +109,7 @@ create_statement returns [Executable command, Node node]:
 		CreateEnvironmentCommand.Builder builder = new CreateEnvironmentCommand.Builder($ID.text, null);
 	}
 	'using' node_param { builder.withNodes($node_param.qty,$node_param.type, $node_param.pool ); }
-	/*(COMMA_AND node_param { builder.withNodes($node_param.qty,$node_param.type, $node_param.pool ); })**/
+	/*(COMMA_AND node_param { builder.withNodes($node_param.qty,$node_param.type, $node_param.pool ); })*/
 	'.' 
 	{
 		$command = builder.build();
@@ -128,11 +130,14 @@ configuration_management_method : PUPPET 'configuration management';
 
 use_statement : 'Use' (orchestration_method | configuration_management_method);
 
+persistence : 'Persist to' (ZOOKEEPER | YAML) 'on' ID;
+
 deploy_statement returns [Executable command, Node node]:
 	'Deploy' version_param module_type
 	'code from' code_repository
 	'to the' ID 'environment.'
-	{$command = new DeployCommand();}
+	//TODO: add support for persistence
+	{$command = new DeployApplicationCommand.Builder("text", $ID.text, new NoEnvironmentRepository()).build();}
 ;
 
 // Do I need to know about packages, dependencies, distributions?

@@ -56,7 +56,7 @@ public class LangTest {
 		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();	
 		Assert.assertEquals("ls",toRun.getBody());
 		Assert.assertEquals("localhost",step.getNodes().get(0).getHostname());
-		Assert.assertEquals("on localhost run ls", program.display());
+		Assert.assertEquals("on Node[hostname=localhost,domainname=<null>,ip=<null>,type=<null>,provisioned=<null>] run ls", program.display());
 	}
 	
 	@Test

@@ -27,6 +27,9 @@ package com.peoplemerge.ngds;
 
 import java.util.List;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 public class Step implements Executable {
 
 	private Executable command;
@@ -65,6 +68,33 @@ public class Step implements Executable {
 		} else {
 			return "Ran: " + command + " on " + node + " result: " + output;
 		}
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (obj == this) {
+			return true;
+		}
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		Step rhs = (Step) obj;
+		// TODO invesigate why it fails when .appendSuper(super.equals(obj))
+		EqualsBuilder builder = new EqualsBuilder()
+				.append(command, rhs.command).append(node, rhs.node);
+		if (!(output == null && rhs.output == null)) {
+			builder.append(output, rhs.output);
+		}		
+		return builder.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(1245737, 534515).append(command)
+				.append(node).append(output).toHashCode();
 	}
 
 }

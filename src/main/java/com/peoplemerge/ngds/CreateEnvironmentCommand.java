@@ -197,6 +197,8 @@ public class CreateEnvironmentCommand implements Executable {
 			logger.error(e.toString());
 			return ExitCode.FAILURE;
 		}
+		
+		logger.info("Updating " + namingService);
 
 		namingService.update(repo);
 

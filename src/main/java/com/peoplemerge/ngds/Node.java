@@ -1,7 +1,7 @@
 /************************************************************************
  ** 
- ** Copyright (C) 2011 Dave Thomas, PeopleMerge.
  ** All rights reserved.
+ ** Copyright (C) 2011 Dave Thomas, PeopleMerge.
  ** Contact: opensource@peoplemerge.com.
  **
  ** This file is part of the NGDS language.
@@ -32,6 +32,8 @@ import java.util.List;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 public class Node implements AcceptsCommands {
 
@@ -47,7 +49,7 @@ public class Node implements AcceptsCommands {
 	private String hostname;
 
 	private String domainname;
-	
+
 	public String getDomainname() {
 		return domainname;
 	}
@@ -61,8 +63,9 @@ public class Node implements AcceptsCommands {
 	private Boolean isProvisioned;
 
 	private String ip = null;
-	
+
 	private List<Role> roles = new LinkedList<Role>();
+
 	/**
 	 * TODO IP may change over time Ip is nullable to allow for provisioning
 	 * 
@@ -92,33 +95,34 @@ public class Node implements AcceptsCommands {
 		this.hostname = hostname;
 		this.ip = ip;
 		isProvisioned = true;
-		this.roles.addAll(Arrays.asList(roles));
+		addRoles(roles);
 	}
-	
+
 	public Node(String hostname, String domainname, String ip, Role... roles) {
 		this.hostname = hostname;
 		this.domainname = domainname;
 		this.ip = ip;
 		isProvisioned = true;
-		this.roles.addAll(Arrays.asList(roles));
+		addRoles(roles);
 	}
 
-	//TODO use builder or factory when constructing nodes
+	// TODO use builder or factory when constructing nodes
 	// This constructor makes sense when provisioning Nodes
 	public Node(String hostname, Type type, NodePool source) {
 		this.hostname = hostname;
 		this.type = type;
 		this.source = source;
 	}
-	
+
 	// This constructor makes sense when provisioning Nodes
-	public Node(String hostname, String domainname, Type type, NodePool pool, Role... roles) {
+	public Node(String hostname, String domainname, Type type, NodePool pool,
+			Role... roles) {
 		this.hostname = hostname;
 		this.domainname = domainname;
 		this.type = type;
 		this.source = pool;
 		this.roles.addAll(Arrays.asList(roles));
-		}
+	}
 
 	// This constructor makes sense when using provisioned Nodes
 	public Node(String hostname, String ip, Type type, NodePool source) {
@@ -128,14 +132,14 @@ public class Node implements AcceptsCommands {
 		this.source = source;
 		isProvisioned = true;
 	}
-	
-	
-	public Node(Composite composite){
-		//TODO make this a factory, so composite.getKey throws some obvious exceptions
+
+	public Node(Composite composite) {
+		// TODO make this a factory, so composite.getKey throws some obvious
+		// exceptions
 		this.hostname = composite.getKey().replace("hosts/", "");
 		this.ip = composite.getValue();
 		isProvisioned = true;
-		
+
 	}
 
 	public String getHostname() {
@@ -143,15 +147,19 @@ public class Node implements AcceptsCommands {
 	}
 
 	public String toString() {
-		return hostname;
+		ToStringBuilder builder = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("hostname",
+				hostname).append("domainname", domainname).append("ip", ip)
+				.append("type", type).append("provisioned", isProvisioned);
+		for (Role role : roles) {
+			builder.append("role", role.getName());
+		}
+		return builder.toString();
 	}
 
-	@Override
-	public Job accept(Executable command) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	/*
+	 * @Override public Job accept(Executable command) { // TODO Auto-generated
+	 * method stub return null; }
+	 */
 	// TODO This is here simply because Environment.getNodes makes sense which
 	// shares the interface AcceptsCommands. Think about ISP, break up
 	// AcceptsCommands?
@@ -175,10 +183,19 @@ public class Node implements AcceptsCommands {
 		}
 		return isProvisioned;
 	}
-	public void addRole(Role role){
+
+	public void addRole(Role role) {
 		roles.add(role);
+		role.addNode(this);
 	}
-	public List<Role> getRoles(){
+
+	public void addRoles(Role... roles) {
+		for (Role role : roles) {
+			addRole(role);
+		}
+	}
+
+	public List<Role> getRoles() {
 		return roles;
 	}
 
@@ -219,7 +236,8 @@ public class Node implements AcceptsCommands {
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(1217, 52345).append(type).append(hostname)
-				.append(source).append(ip).append(domainname).append(isProvisioned).toHashCode();
+				.append(source).append(ip).append(domainname).append(
+						isProvisioned).toHashCode();
 	}
 
 }

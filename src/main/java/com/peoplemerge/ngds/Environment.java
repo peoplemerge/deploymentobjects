@@ -25,6 +25,7 @@
  ************************************************************************/
 package com.peoplemerge.ngds;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,6 +45,17 @@ public class Environment {
 	}
 
 	private List<Node> nodes = new LinkedList<Node>();
+	
+	public Role lookupRoleByName(String roleName){
+		for(Node node : nodes){
+			for(Role role : node.getRoles()){
+				if(role.getName().equals(roleName)){
+					return role;
+				}
+			}
+		}
+		return null;
+	}
 
 	public void addNode(Node node) {
 		nodes.add(node);

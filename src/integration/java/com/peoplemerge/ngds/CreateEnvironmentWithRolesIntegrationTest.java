@@ -12,11 +12,10 @@ public class CreateEnvironmentWithRolesIntegrationTest {
 	public void createClusterWithRoles() throws Exception {
 
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
-				"role17", new ZookeeperEnvironmentRepository(
-						new ZookeeperPersistence("ino:2181"))).withNodes(2,
+				"jenkins6env", new ZookeeperEnvironmentRepository(
+						new ZookeeperPersistence("ino:2181"))).withNodes(1,
 				Type.SMALL, new Dom0("root", "kowalski", new NfsMount()),
-				new Role("web")).withNodes(1, Type.SMALL,
-				new Dom0("root", "kowalski", new NfsMount()), new Role("db"))
+				new Role("standard"))
 				.withConfigurationManagement(
 						new Puppet(new Node("puppetmaster1", "peoplemerge.com",
 								"192.168.10.137"))).withDispatch(

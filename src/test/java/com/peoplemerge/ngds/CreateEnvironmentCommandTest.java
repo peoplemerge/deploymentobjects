@@ -101,6 +101,7 @@ public class CreateEnvironmentCommandTest {
 		// TODO the dispatch method should probably be control-inverted.
 		createCommandBuilder.withDispatch(dispatch);
 		createCommandBuilder.withKickstartServer(kickstartServer);
+		createCommandBuilder.withNamingService(namingService);
 		return createCommandBuilder;
 	}
 
