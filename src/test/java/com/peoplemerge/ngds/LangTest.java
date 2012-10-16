@@ -82,23 +82,15 @@ public class LangTest {
 	}
 	@Test
 	public void createSentenceWithRoles() throws RecognitionException {
-//		String sentence = "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
+
 		String sentence = ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		
-		// Perhaps the create environment command should return an environment
-		// implements Command<Environment> ?
-		// ditch Command pattern?
 		Step step = program.getSteps().get(0);
 		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
 		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
 		assertTrue(toRun.toString().contains("hostname=developmentwebdb1"));
 		assertTrue(toRun.toString().contains("role=web,role=db"));
-		// Reach out to the domO to create the node
-		//toRun.execute();
-		
-		// Assume (default) HostsFileNaming
-		//Environment newEnvironment = toRun.execute();
 
 	}
 	@Test
@@ -107,20 +99,12 @@ public class LangTest {
 		String sentence = puppet + ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		
-		// Perhaps the create environment command should return an environment
-		// implements Command<Environment> ?
-		// ditch Command pattern?
 		Step step = program.getSteps().get(0);
 		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
 		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
 		String programOut = toRun.toString();
 		assertTrue(programOut.contains("Puppet"));
 		
-		// Reach out to the domO to create the node
-		//toRun.execute();
-		
-		// Assume (default) HostsFileNaming
-		//Environment newEnvironment = toRun.execute();
 
 	}
 	
@@ -129,25 +113,15 @@ public class LangTest {
 		String sentence = jsch + ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		
-		// Perhaps the create environment command should return an environment
-		// implements Command<Environment> ?
-		// ditch Command pattern?
 		Step step = program.getSteps().get(0);
 		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
 		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
 		String programOut = toRun.toString();
 		assertTrue(programOut.contains("root"));
 		
-		// Reach out to the domO to create the node
-		//toRun.execute();
-		
-		// Assume (default) HostsFileNaming
-		//Environment newEnvironment = toRun.execute();
-
 	}
 	@Test
 	public void deploySentence() throws RecognitionException {
-//		String sentence = "Deploy latest infrastructure code from version control to the testing environment";
 		String sentence = ZOOKEEPER_SENTENCE + "Deploy latest infrastructure code from version control to the testing environment";
 		Program program = Program.factory(sentence);
 		Step step = program.getSteps().get(0);
