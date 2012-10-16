@@ -34,6 +34,7 @@ options{
 }
 @header{
 	package com.peoplemerge.ngds;
+	import java.io.IOException;
 	import com.peoplemerge.ngds.Program;
 	import com.peoplemerge.ngds.Executable;
 	import com.peoplemerge.ngds.NodePool;
@@ -43,6 +44,35 @@ options{
 @members{
 //  SymbolTable symbolTable = new SymbolTable();
 //  Scope currentScope = symbolTable.globals;
+	private ConfigurationManagement configurationManagement;
+	private EnvironmentRepository environmentRepository;
+	private Dispatchable dispatchable;
+	private ControlsMachines controlsMachines;
+	private Persistence persistence;
+	private Template template;
+
+	public ConfigurationManagement getConfigurationManagement() {
+		if (configurationManagement == null) {
+			configurationManagement = new NoConfigurationManagement();
+		}
+		return configurationManagement;
+	}
+
+	public EnvironmentRepository getEnvironmentRepository() {
+		if (persistence != null && environmentRepository == null) {
+			if (persistence instanceof ZookeeperPersistence) {
+				// Yes, this violates OCP, but this is an assembler and probably
+				// appropriate in this case
+				environmentRepository = new ZookeeperEnvironmentRepository(
+						(ZookeeperPersistence) persistence);
+			}
+		}
+		if (environmentRepository == null) {
+			environmentRepository = new NoEnvironmentRepository();
+		}
+		return environmentRepository;
+	}
+	private Program program;
 }
 
 @lexer::header{
@@ -75,20 +105,18 @@ MCOLLECTIVE : 'mcollective';
 PUPPET : 'puppet';
 ZOOKEEPER : 'zookeeper';
 YAML : 'yaml';
+JSCH : 'jsch';
 
-ID: ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
+ID: ('a'..'z'|'A'..'Z'|'0'..'9') ('a'..'z'|'A'..'Z'|'0'..'9'|'-'|'.')*;
 
 PATH : ('a'..'z'|'A'..'Z'|'_'|'/'|'\\'|'.');
+ // TODO: Don't let the user shoot himself in the foot with this very unrestrictive host string.
+//HOST : ('a'..'z'|'A'..'Z'|'0'..'9')('a'..'z'|'A'..'Z'|'0'..'9' | '.'|'-')*;
+ZOOKEEPER_CONNECTION_STRING : ( ID ':' INT_CONST )(COMMA ID ':' INT_CONST )*;
 
 
 //ENVIRONMENT_DEFINITION : 'The' ID 'environment consists of' NODE_APP_MAPPING (COMMA_AND NODE_APP_MAPPING)* PERIOD;
 
-
-node_param returns [Integer qty, Node.Type type, NodePool pool] : 
-	INT_CONST {$qty = new Integer($INT_CONST.text);}
-	capability {$type = $capability.type;}
-	'nodes from' node_classifier {$pool = $node_classifier.pool;}
-	;
 
 
 // TODO allow better here docs like so http://www.antlr.org/pipermail/antlr-interest/2005-September/013673.html
@@ -103,14 +131,31 @@ scripted_statement returns [Executable command, Node node] : 'On' +
  	} 
  	'EOF';
 
+
+node_param returns [Integer qty, Node.Type type, NodePool pool, List<Role> roles] : 
+	INT_CONST {$qty = new Integer($INT_CONST.text);}
+	capability {$type = $capability.type;}
+	'nodes from' node_classifier {$pool = $node_classifier.pool;}
+	{$roles = new ArrayList<Role>();}
+	
+	(
+		'having roles'
+		(ID {$roles.add(new Role($ID.text));})+
+		
+	)?
+	;
+
+
 create_statement returns [Executable command, Node node]:
-	'Create a new environment called' ID // create a data structure like a list
+'Create a new environment called' ID 
 	{
-		CreateEnvironmentCommand.Builder builder = new CreateEnvironmentCommand.Builder($ID.text, null);
+		CreateEnvironmentCommand.Builder builder = new CreateEnvironmentCommand.Builder($ID.text, getEnvironmentRepository());
+		builder.withDispatch(dispatchable);
+		builder.withConfigurationManagement(getConfigurationManagement());
 	}
-	'using' node_param { builder.withNodes($node_param.qty,$node_param.type, $node_param.pool ); }
-	/*(COMMA_AND node_param { builder.withNodes($node_param.qty,$node_param.type, $node_param.pool ); })*/
-	'.' 
+	'using' first=node_param { builder.withNodes($first.qty,$first.type, $first.pool, $first.roles.toArray(new Role[]{}) ); }
+	(COMMA_AND other=node_param { builder.withNodes($other.qty,$other.type, $other.pool, $other.roles.toArray(new Role[]{}) ); })*
+	
 	{
 		$command = builder.build();
 	}
@@ -125,18 +170,40 @@ filesystem_location : ID ':' PATH;
 
 code_repository : 'version control' | 'the maven repository' | 'the filesystem' filesystem_location;
 
-orchestration_method : (FABRIC | MCOLLECTIVE) 'orchestration';
-configuration_management_method : PUPPET 'configuration management';
+//dispatch_method : (FABRIC | MCOLLECTIVE | PURE_JAVA) 'dispatch';
+dispatch_method : JSCH 'dispatch as user' ID 
+{
+	dispatchable = new JschDispatch($ID.text);
+}
+;
 
-use_statement : 'Use' (orchestration_method | configuration_management_method);
+//naming_service_method : HOSTS_FILE | BIND |NSD_UNBOUND
 
-persistence : 'Persist to' (ZOOKEEPER | YAML) 'on' ID;
+//configuration_management_method : (CHEF | PUPPET 'server' HOST | CFENGINE) ;
+
+//TODO consider storing global config information in zookeeper or whatever persistence
+configuration_management_method : PUPPET 'with puppetmaster on' hostname=ID domainname=ID ipaddress=ID
+{
+	configurationManagement = new Puppet(new Node($hostname.text, $domainname.text, $ipaddress.text));
+};
+
+persistence_statement : 'Persist with' 
+	(ZOOKEEPER 'with connection string' ZOOKEEPER_CONNECTION_STRING 
+	{
+	try{
+		persistence = new ZookeeperPersistence($ZOOKEEPER_CONNECTION_STRING.text);
+	}catch(IOException e){
+		System.err.println(e.toString());
+	}
+	}
+	| YAML 'file' PATH);
+
+use_statement : 'Use' (dispatch_method | configuration_management_method);
 
 deploy_statement returns [Executable command, Node node]:
 	'Deploy' version_param module_type
 	'code from' code_repository
-	'to the' ID 'environment.'
-	//TODO: add support for persistence
+	'to the' ID 'environment'
 	{$command = new DeployApplicationCommand.Builder("text", $ID.text, new NoEnvironmentRepository()).build();}
 ;
 
@@ -145,20 +212,30 @@ deploy_statement returns [Executable command, Node node]:
 // Need to specify default meta parameters like where the source control is located, ec2 credentials or a way to lookup
 // free VMs.
 
+emit_statement: 'Emit'
+{
+	System.out.println(program.toString());
+};
+execute_statement: 'Execute'
+{
+	program.execute();
+};
+
 
 program returns [Program program]: 
-	{$program = new Program();}
+	{
+	$program = new Program(); 
+	// set the global @member too
+	program = $program;
+	}
+	use_statement*
+	persistence_statement
 	(
-		scripted_statement {$program.addStep($scripted_statement.command, $scripted_statement.node);}
-		| create_statement {$program.addStep($create_statement.command, null);}
-		| deploy_statement {$program.addStep($deploy_statement.command, null);}
-	)
-	
+		//scripted_statement {$program.addStep($scripted_statement.command, $scripted_statement.node);} | 
+		create_statement {$program.addStep($create_statement.command, new Node(""));} | 
+		deploy_statement {$program.addStep($deploy_statement.command, new Node(""));}
+	)*
+	(emit_statement | execute_statement)*
 	;
 	
-emit_command: 'Emit';
-
-execute_command: 'Execute';
-
-
  	

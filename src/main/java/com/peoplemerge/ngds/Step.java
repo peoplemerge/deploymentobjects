@@ -59,7 +59,7 @@ public class Step implements Executable {
 
 	@Override
 	public ExitCode execute() {
-		return null;
+		return command.execute();
 	}
 
 	public String toString() {

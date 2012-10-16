@@ -1,0 +1,5 @@
+Use jsch dispatch as user root
+Use puppet with puppetmaster on puppetmaster1 peoplemerge.com 192.168.10.137
+Persist with zookeeper with connection string ino:2181
+Create a new environment called cmdline3 using 1 small nodes from dom0 kowalski having roles web
+Execute

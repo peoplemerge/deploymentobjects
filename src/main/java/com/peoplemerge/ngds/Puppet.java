@@ -23,7 +23,7 @@ public class Puppet implements ConfigurationManagement {
 
 	@Override
 	public String getKickstartPost() {
-		return "puppet resource ssh_authorized_key 'god@heaven' ensure=present type=ssh-rsa user=root key='AAAAREPLACEWITHMYKEYAAAAAAAA=='  &>>/root/puppet-out\n"
+		return "puppet resource ssh_authorized_key 'god@heaven' ensure=present type=ssh-rsa user=root key='AAAAB3NzaC1yc2EAAAABIwAAAQEAxJNexZQyrppEaec9s+sFA14MuD2cLmLK90kcVoMiC31cnbB/oGTdPACnBRluvwaI6D6gJ9kUlqf3qka9GJqFUY6k7TFiuCOPpMrxZV5Eyk+p+C2FtW+Q/qwMCZecnYnmyRzXaYe2IZ1uOrpPdbty0GHOleDFqHbpzWgyjMVpPTjOO21js/jm1dPxCn1q8FpYmb0DDqEUHBXQjlGsB4eHwDiRNWfARIXV0KIZqp2bvdRqy7yty+21kPLIL6wgNN/Q4nb/swFoNiTO0UivSmDPh62FAzfQWObONPqjLGEpuBkrPY1yrIlU+KEqsD11ZR0f5M6wTFGQi9goQss3z3bgfQ=='  &>>/root/puppet-out\n"
 				+ "puppet resource host " + puppetmaster.getHostname() + "."
 				+ puppetmaster.getDomainname() + " ensure=present ip="
 				+ puppetmaster.getIp() + " host_aliases="
@@ -100,7 +100,7 @@ public class Puppet implements ConfigurationManagement {
 		String body = "puppet agent --test\n"
 				+ "if [[ $? -eq 2 ]]; then exit 0;\n"
 				+ "fi\n" 
-				+ "exit 1";
+				+ "exit 1\n";
 		Executable newEnv = new ScriptedCommand(body);
 		return new Step(newEnv, node);
 	}

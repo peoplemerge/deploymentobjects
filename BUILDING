@@ -35,3 +35,4 @@ Also for libvirt connections, mac socket file locations are different, so append
 ?socket=path.  Ex: qemu+ssh://ino/system?socket=/var/run/libvirt/libvirt-sock"
 
 Some integration tests depend on libvirt and zookeeper to be installed and running.
+

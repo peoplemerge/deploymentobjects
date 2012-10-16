@@ -28,8 +28,8 @@ package com.peoplemerge.ngds;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -238,6 +238,10 @@ public class CreateEnvironmentCommand implements Executable {
 		logger.info("Operation completed in " + duration + "s");
 		return ExitCode.SUCCESS;
 
+	}
+	
+	public String toString(){
+		return new ReflectionToStringBuilder(this).toString();
 	}
 
 }

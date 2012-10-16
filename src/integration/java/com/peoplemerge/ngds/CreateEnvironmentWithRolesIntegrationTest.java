@@ -12,7 +12,7 @@ public class CreateEnvironmentWithRolesIntegrationTest {
 	public void createClusterWithRoles() throws Exception {
 
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
-				"jenkins6env", new ZookeeperEnvironmentRepository(
+				"jenkins7env", new ZookeeperEnvironmentRepository(
 						new ZookeeperPersistence("ino:2181"))).withNodes(1,
 				Type.SMALL, new Dom0("root", "kowalski", new NfsMount()),
 				new Role("standard"))
