@@ -35,9 +35,10 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.deploymentobjects.core.domain.model.execution.AcceptsCommands;
+import org.deploymentobjects.core.domain.model.shared.Entity;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
 
-public class Node implements AcceptsCommands {
+public class Node implements AcceptsCommands, Entity<Node> {
 
 	public enum Type {
 		SMALL, LARGE, DATABASE;
@@ -240,6 +241,12 @@ public class Node implements AcceptsCommands {
 		return new HashCodeBuilder(1217, 52345).append(type).append(hostname)
 				.append(source).append(ip).append(domainname).append(
 						isProvisioned).toHashCode();
+	}
+
+	@Override
+	public boolean sameIdentityAs(Node other) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
