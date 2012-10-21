@@ -1,4 +1,4 @@
-package org.deploymentobjects.com;
+package org.deploymentobjects.core.infrastructure.execution;
 import junit.framework.Assert;
 
 import org.deploymentobjects.core.application.ScriptedCommand;

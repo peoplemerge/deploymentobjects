@@ -1,5 +1,6 @@
-package org.deploymentobjects.core.domain.model.execution;
+package org.deploymentobjects.core.infrastructure.execution;
 
+import org.deploymentobjects.core.domain.model.execution.ControlsMachines;
 import org.libvirt.Connect;
 import org.libvirt.Domain;
 import org.libvirt.LibvirtException;

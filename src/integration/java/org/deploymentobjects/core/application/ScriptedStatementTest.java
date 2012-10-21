@@ -1,4 +1,4 @@
-package org.deploymentobjects.com;
+package org.deploymentobjects.core.application;
 import junit.framework.Assert;
 
 import org.antlr.runtime.ANTLRStringStream;

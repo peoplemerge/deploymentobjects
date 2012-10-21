@@ -28,8 +28,8 @@ package org.deploymentobjects.core.domain.model.environment;
 import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.configuration.Storage;
 import org.deploymentobjects.core.domain.model.execution.ControlsMachines;
-import org.deploymentobjects.core.domain.model.execution.LibvirtAdapter;
 import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.infrastructure.execution.LibvirtAdapter;
 
 public class Dom0 extends Node implements NodePool {
 

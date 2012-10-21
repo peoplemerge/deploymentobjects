@@ -1,4 +1,4 @@
-package org.deploymentobjects.com;
+package org.deploymentobjects.core.infrastructure.persistence.zookeeper;
 
 import static org.mockito.Mockito.*;
 

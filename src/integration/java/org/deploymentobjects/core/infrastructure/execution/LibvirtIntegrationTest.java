@@ -1,4 +1,4 @@
-package org.deploymentobjects.com;
+package org.deploymentobjects.core.infrastructure.execution;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -6,9 +6,9 @@ import java.util.concurrent.Executors;
 import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.environment.Node;
 import org.deploymentobjects.core.domain.model.execution.ControlsMachines;
-import org.deploymentobjects.core.domain.model.execution.LibvirtAdapter;
 import org.deploymentobjects.core.domain.model.execution.Step;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
+import org.deploymentobjects.core.infrastructure.execution.LibvirtAdapter;
 import org.junit.Assert;
 import org.junit.Test;
 

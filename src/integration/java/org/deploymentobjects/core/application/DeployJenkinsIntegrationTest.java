@@ -1,4 +1,4 @@
-package org.deploymentobjects.com;
+package org.deploymentobjects.core.application;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -37,8 +37,8 @@ public class DeployJenkinsIntegrationTest {
 				new ZookeeperPersistence("ino:2181"));
 
 		DeployApplicationCommand cmd = new DeployApplicationCommand.Builder(
-				"jenkins", "jenkins4env", repo)
-				.addCommandOnNodesByRole(commands, "standard").withDispatch(
+				"jenkins", "rfctr1", repo)
+				.addCommandOnNodesByRole(commands, "web").withDispatch(
 						new JschDispatch("root")).build();
 		ExitCode exit = cmd.execute();
 		assertEquals(ExitCode.SUCCESS, exit);
