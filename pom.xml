@@ -20,12 +20,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.peoplemerge</groupId>
-	<artifactId>ngds</artifactId>
+	<groupId>org.deploymentobjects</groupId>
+	<artifactId>core</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>The Next Generation Distributed System</name>
-	<url>http://www.peoplemerge.com</url>
+	<name>Deployment Objects</name>
+	<url>http://www.deploymentobjects.com</url>
 	<properties>
 		<jna.version>3.3.0</jna.version>
 	</properties>
