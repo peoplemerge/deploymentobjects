@@ -31,7 +31,6 @@ import java.util.List;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.deploymentobjects.core.domain.model.configuration.ConfigurationManagement;
-import org.deploymentobjects.core.domain.model.configuration.KickstartServer;
 import org.deploymentobjects.core.domain.model.configuration.NamingService;
 import org.deploymentobjects.core.domain.model.configuration.NfsMount;
 import org.deploymentobjects.core.domain.model.configuration.NoConfigurationManagement;
@@ -40,6 +39,7 @@ import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository
 import org.deploymentobjects.core.domain.model.environment.Node;
 import org.deploymentobjects.core.domain.model.environment.NodePool;
 import org.deploymentobjects.core.domain.model.environment.Role;
+import org.deploymentobjects.core.domain.model.environment.provisioning.KickstartServer;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
 import org.deploymentobjects.core.domain.model.execution.Executable;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;

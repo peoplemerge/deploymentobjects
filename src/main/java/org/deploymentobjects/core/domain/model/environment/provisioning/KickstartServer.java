@@ -1,4 +1,4 @@
-package org.deploymentobjects.core.domain.model.configuration;
+package org.deploymentobjects.core.domain.model.environment.provisioning;
 
 import java.io.File;
 import java.util.HashMap;
@@ -7,6 +7,8 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.deploymentobjects.core.Template;
 import org.deploymentobjects.core.VelocityTemplate;
+import org.deploymentobjects.core.domain.model.configuration.ConfigurationManagement;
+import org.deploymentobjects.core.domain.model.configuration.Storage;
 import org.deploymentobjects.core.domain.model.environment.Node;
 
 //TODO This class kind of breaks the object model...

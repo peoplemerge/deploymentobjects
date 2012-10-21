@@ -6,9 +6,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.deploymentobjects.core.domain.model.configuration.KickstartServer;
 import org.deploymentobjects.core.domain.model.configuration.Storage;
 import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.provisioning.KickstartServer;
 import org.deploymentobjects.core.infrastructure.configuration.Puppet;
 import org.junit.Test;
 

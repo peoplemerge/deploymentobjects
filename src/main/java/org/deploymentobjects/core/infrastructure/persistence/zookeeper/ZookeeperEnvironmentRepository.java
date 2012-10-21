@@ -15,7 +15,7 @@ import org.deploymentobjects.core.infrastructure.persistence.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZookeeperEnvironmentRepository implements EnvironmentRepository {
+public class ZookeeperEnvironmentRepository extends ZookeeperRepository implements EnvironmentRepository {
 
 	public static final String SEPERATOR = ", ";
 	private ZookeeperPersistence persistence;
