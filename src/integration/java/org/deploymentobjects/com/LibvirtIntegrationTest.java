@@ -3,12 +3,12 @@ package org.deploymentobjects.com;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.deploymentobjects.core.ControlsMachines;
-import org.deploymentobjects.core.JschDispatch;
-import org.deploymentobjects.core.LibvirtAdapter;
-import org.deploymentobjects.core.Node;
-import org.deploymentobjects.core.ScriptedCommand;
-import org.deploymentobjects.core.Step;
+import org.deploymentobjects.core.application.ScriptedCommand;
+import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.execution.ControlsMachines;
+import org.deploymentobjects.core.domain.model.execution.LibvirtAdapter;
+import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
 import org.junit.Assert;
 import org.junit.Test;
 

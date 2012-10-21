@@ -35,10 +35,14 @@ options{
 @header{
 	package org.deploymentobjects.core;
 	import java.io.IOException;
-	import org.deploymentobjects.core.Program;
-	import org.deploymentobjects.core.Executable;
-	import org.deploymentobjects.core.NodePool;
-	import org.deploymentobjects.core.Node;
+	import org.deploymentobjects.core.application.*;
+	import org.deploymentobjects.core.domain.model.execution.*;
+	import org.deploymentobjects.core.domain.model.environment.*;
+	import org.deploymentobjects.core.domain.model.configuration.*;
+	import org.deploymentobjects.core.infrastructure.persistence.*;
+	import org.deploymentobjects.core.infrastructure.persistence.zookeeper.*;
+	import org.deploymentobjects.core.infrastructure.configuration.*;
+	import org.deploymentobjects.core.infrastructure.execution.*;
 }
 
 @members{

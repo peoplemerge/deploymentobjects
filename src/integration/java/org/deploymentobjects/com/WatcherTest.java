@@ -2,10 +2,10 @@ package org.deploymentobjects.com;
 
 import static org.mockito.Mockito.*;
 
-import org.deploymentobjects.core.Composite;
-import org.deploymentobjects.core.HostWatcher;
-import org.deploymentobjects.core.Node;
-import org.deploymentobjects.core.ZookeeperPersistence;
+import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.infrastructure.persistence.Composite;
+import org.deploymentobjects.core.infrastructure.persistence.zookeeper.HostWatcher;
+import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence;
 import org.junit.Test;
 
 public class WatcherTest {

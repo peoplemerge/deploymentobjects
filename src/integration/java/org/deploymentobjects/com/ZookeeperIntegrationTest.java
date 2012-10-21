@@ -10,8 +10,8 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
-import org.deploymentobjects.core.Composite;
-import org.deploymentobjects.core.ZookeeperPersistence;
+import org.deploymentobjects.core.infrastructure.persistence.Composite;
+import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 

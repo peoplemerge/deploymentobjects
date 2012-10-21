@@ -1,11 +1,11 @@
 package org.deploymentobjects.com;
 import junit.framework.Assert;
 
-import org.deploymentobjects.core.JschDispatch;
-import org.deploymentobjects.core.Node;
-import org.deploymentobjects.core.ScriptedCommand;
-import org.deploymentobjects.core.Step;
-import org.deploymentobjects.core.Node.Type;
+import org.deploymentobjects.core.application.ScriptedCommand;
+import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Node.Type;
+import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
 import org.junit.Test;
 
 import com.jcraft.jsch.JSch;

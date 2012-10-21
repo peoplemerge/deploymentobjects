@@ -27,11 +27,11 @@ package org.deploymentobjects.core;
 import static junit.framework.Assert.*;
 
 import org.antlr.runtime.RecognitionException;
-import org.deploymentobjects.core.CreateEnvironmentCommand;
-import org.deploymentobjects.core.Executable;
-import org.deploymentobjects.core.Program;
-import org.deploymentobjects.core.ScriptedCommand;
-import org.deploymentobjects.core.Step;
+import org.deploymentobjects.core.application.CreateEnvironmentCommand;
+import org.deploymentobjects.core.application.ScriptedCommand;
+import org.deploymentobjects.core.domain.model.execution.Executable;
+import org.deploymentobjects.core.domain.model.execution.Program;
+import org.deploymentobjects.core.domain.model.execution.Step;
 import org.junit.Ignore;
 import org.junit.Test;
 

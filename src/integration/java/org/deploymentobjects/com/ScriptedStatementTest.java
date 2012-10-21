@@ -7,10 +7,10 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.TokenStream;
 import org.deploymentobjects.core.DeploymentObjectsLexer;
 import org.deploymentobjects.core.DeploymentObjectsParser;
-import org.deploymentobjects.core.ExitCode;
-import org.deploymentobjects.core.Program;
-import org.deploymentobjects.core.ScriptedCommand;
-import org.deploymentobjects.core.Step;
+import org.deploymentobjects.core.application.ScriptedCommand;
+import org.deploymentobjects.core.domain.model.execution.ExitCode;
+import org.deploymentobjects.core.domain.model.execution.Program;
+import org.deploymentobjects.core.domain.model.execution.Step;
 import org.junit.Test;
 
 
