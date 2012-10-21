@@ -1,4 +1,4 @@
-package org.deploymentobjects.core.domain.model.execution;
+package org.deploymentobjects.core.application;
 
 import java.io.File;
 
@@ -10,6 +10,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.io.FileUtils;
+import org.deploymentobjects.core.domain.model.execution.Program;
 
 public class EntryPoint {
 
