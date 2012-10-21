@@ -1,4 +1,4 @@
-package org.deploymentobjects.core.domain.model.shared;
+package org.deploymentobjects.core.domain.shared;
 
 import java.io.Serializable;
 

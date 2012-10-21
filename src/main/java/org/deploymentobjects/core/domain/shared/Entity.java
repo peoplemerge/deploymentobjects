@@ -1,4 +1,4 @@
-package org.deploymentobjects.core.domain.model.shared;
+package org.deploymentobjects.core.domain.shared;
 
 /**
  * An entity, as explained in the DDD book.
