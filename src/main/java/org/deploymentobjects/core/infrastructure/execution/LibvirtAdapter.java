@@ -1,11 +1,11 @@
 package org.deploymentobjects.core.infrastructure.execution;
 
-import org.deploymentobjects.core.domain.model.execution.ControlsMachines;
+import org.deploymentobjects.core.domain.model.execution.ControlsHosts;
 import org.libvirt.Connect;
 import org.libvirt.Domain;
 import org.libvirt.LibvirtException;
 
-public class LibvirtAdapter implements ControlsMachines{
+public class LibvirtAdapter implements ControlsHosts{
 
 	public LibvirtAdapter(String connectString){
 		try {

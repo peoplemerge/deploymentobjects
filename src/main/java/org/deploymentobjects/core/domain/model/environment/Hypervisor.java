@@ -27,32 +27,32 @@ package org.deploymentobjects.core.domain.model.environment;
 
 import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.configuration.Storage;
-import org.deploymentobjects.core.domain.model.execution.ControlsMachines;
+import org.deploymentobjects.core.domain.model.execution.ControlsHosts;
 import org.deploymentobjects.core.domain.model.execution.Step;
 import org.deploymentobjects.core.infrastructure.execution.LibvirtAdapter;
 
-public class Dom0 extends Node implements NodePool {
+public class Hypervisor extends Node implements NodePool {
 
 	
-	private ControlsMachines controller;
+	private ControlsHosts controller;
 	private Storage storage;
 	private String userAt = "";
 
-	private synchronized ControlsMachines getController(){
+	private synchronized ControlsHosts getController(){
 		if(controller == null){
 			controller = new LibvirtAdapter("qemu+ssh://"+ getHostname() +"/system?socket=/var/run/libvirt/libvirt-sock");
 		}
 		return controller;
 	}
 	
-	public Dom0(String userName, String hostname, Storage storage) {
+	public Hypervisor(String userName, String hostname, Storage storage) {
 		super(hostname);
 		userAt = userName + "@";
 		this.storage = storage;
 	}
 	
 	//TODO consider pushing up Storage constructor
-	public Dom0(String hostname, Storage storage) {
+	public Hypervisor(String hostname, Storage storage) {
 		super(hostname);
 		this.storage = storage;
 	}

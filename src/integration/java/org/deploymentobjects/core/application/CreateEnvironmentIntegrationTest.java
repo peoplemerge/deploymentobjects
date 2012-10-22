@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.deploymentobjects.core.application.CreateEnvironmentCommand;
 import org.deploymentobjects.core.domain.model.configuration.NfsMount;
-import org.deploymentobjects.core.domain.model.environment.Dom0;
+import org.deploymentobjects.core.domain.model.environment.Hypervisor;
 import org.deploymentobjects.core.domain.model.environment.Node;
 import org.deploymentobjects.core.domain.model.environment.Node.Type;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
@@ -23,7 +23,7 @@ public class CreateEnvironmentIntegrationTest {
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
 				"puppet1env", new ZookeeperEnvironmentRepository(
 						new ZookeeperPersistence("ino:2181"))).withNodes(1,
-				Type.SMALL, new Dom0("root", "kowalski", new NfsMount()))
+				Type.SMALL, new Hypervisor("root", "kowalski", new NfsMount()))
 				.withConfigurationManagement(
 						new Puppet(new Node("puppetmaster1", "peoplemerge.com",
 								"192.168.10.137"))).withDispatch(

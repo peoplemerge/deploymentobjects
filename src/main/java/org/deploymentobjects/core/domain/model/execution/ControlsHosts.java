@@ -1,7 +1,7 @@
 package org.deploymentobjects.core.domain.model.execution;
 
 
-public interface ControlsMachines {
+public interface ControlsHosts {
 
 	public boolean startHost(String vm);
 

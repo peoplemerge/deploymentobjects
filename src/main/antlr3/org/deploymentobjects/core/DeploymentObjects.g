@@ -51,7 +51,8 @@ options{
 	private ConfigurationManagement configurationManagement;
 	private EnvironmentRepository environmentRepository;
 	private Dispatchable dispatchable;
-	private ControlsMachines controlsMachines;
+	// TODO is controlsHosts used?  May need to add to builder
+	private ControlsHosts controlsHosts;
 	private Persistence persistence;
 	private Template template;
 
@@ -100,7 +101,7 @@ STRING: '"' (~('\\'|'"') )* '"';
 
 //NODE_APP_MAPPING :  
 
-node_classifier returns [NodePool pool] : 'ldap' | 'ec2' | 'dom0' ID {$pool = new Dom0($ID.text, new NfsMount());} | 'zookeeper' ;
+node_classifier returns [NodePool pool] : 'ldap' | 'ec2' | 'dom0' ID {$pool = new Hypervisor($ID.text, new NfsMount());} | 'zookeeper' ;
 
 capability returns [Node.Type type] : 'small' {$type = Node.Type.getSmall();} | 'large' | 'database' ;
 

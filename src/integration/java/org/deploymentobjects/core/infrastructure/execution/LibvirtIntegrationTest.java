@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 
 import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.environment.Node;
-import org.deploymentobjects.core.domain.model.execution.ControlsMachines;
+import org.deploymentobjects.core.domain.model.execution.ControlsHosts;
 import org.deploymentobjects.core.domain.model.execution.Step;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
 import org.deploymentobjects.core.infrastructure.execution.LibvirtAdapter;
@@ -77,7 +77,7 @@ public class LibvirtIntegrationTest {
 
 	@Test
 	public void testConnection() throws Exception {
-		ControlsMachines lv = new LibvirtAdapter(
+		ControlsHosts lv = new LibvirtAdapter(
 				"qemu+ssh://ino/system?socket=/var/run/libvirt/libvirt-sock");
 		executor.execute(starter);
 		boolean retval = lv.pollForDomainToStart(vm, 1000, 60000);
@@ -95,7 +95,7 @@ public class LibvirtIntegrationTest {
 		Step step; 
 		step = executeRemote(commandStr);
 		Assert.assertTrue(!step.getOutput().contains(vm));
-		ControlsMachines lv = new LibvirtAdapter(
+		ControlsHosts lv = new LibvirtAdapter(
 				"qemu+ssh://ino/system?socket=/var/run/libvirt/libvirt-sock");
 		boolean retval = lv.startHost(vm);
 		Assert.assertTrue(retval == true);
