@@ -12,7 +12,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.deploymentobjects.core.domain.model.configuration.ConfigurationManagement;
 import org.deploymentobjects.core.domain.model.environment.Environment;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.environment.Role;
 import org.deploymentobjects.core.infrastructure.configuration.Puppet;
 import org.junit.Test;
@@ -20,7 +20,7 @@ import org.junit.Test;
 
 public class PuppetTest {
 
-	private ConfigurationManagement puppet = new Puppet(new Node("localhost"));
+	private ConfigurationManagement puppet = new Puppet(new Host("localhost"));
 
 	@Test
 	public void testWriteHostsFile() throws Exception {
@@ -30,7 +30,7 @@ public class PuppetTest {
 		File expectedPp = new File(expectedUrl.getFile());
 		String expected = FileUtils.readFileToString(expectedPp);
 
-		Puppet puppet = new Puppet(new Node("puppetmaster1", "peoplemerge.com",
+		Puppet puppet = new Puppet(new Host("puppetmaster1", "peoplemerge.com",
 				"192.168.10.137"));
 		/*
 		 * File actualPp = File.createTempFile("test", "ks");
@@ -43,15 +43,15 @@ public class PuppetTest {
 		Environment environment = new Environment("refactor5test");
 		Role web = new Role("web");
 		Role db = new Role("db");
-		Node refactor5test1 = new Node("refactor5test1", "peoplemerge.com",
+		Host refactor5test1 = new Host("refactor5test1", "peoplemerge.com",
 				"192.168.10.146", web);
-		Node refactor5test2 = new Node("refactor5test2", "peoplemerge.com",
+		Host refactor5test2 = new Host("refactor5test2", "peoplemerge.com",
 				"192.168.10.147", web);
-		Node refactor5test3 = new Node("refactor5test3", "peoplemerge.com",
+		Host refactor5test3 = new Host("refactor5test3", "peoplemerge.com",
 				"192.168.10.148", db);
-		environment.addNode(refactor5test1);
-		environment.addNode(refactor5test2);
-		environment.addNode(refactor5test3);
+		environment.addHost(refactor5test1);
+		environment.addHost(refactor5test2);
+		environment.addHost(refactor5test3);
 		List<Environment> environments = new ArrayList<Environment>();
 		environments.add(environment);
 		String actual = puppet.getHostsPp(environments);
@@ -71,7 +71,7 @@ public class PuppetTest {
 		File expectedPp = new File(expectedUrl.getFile());
 		String expected = FileUtils.readFileToString(expectedPp);
 
-		Puppet puppet = new Puppet(new Node("puppetmaster1", "peoplemerge.com",
+		Puppet puppet = new Puppet(new Host("puppetmaster1", "peoplemerge.com",
 				"192.168.10.137"));
 		/*
 		 * File actualPp = File.createTempFile("test", "ks");
@@ -84,15 +84,15 @@ public class PuppetTest {
 		Environment environment = new Environment("refactor5test");
 		Role web = new Role("web");
 		Role db = new Role("db");
-		Node refactor5test1 = new Node("refactor5test1", "peoplemerge.com",
+		Host refactor5test1 = new Host("refactor5test1", "peoplemerge.com",
 				"192.168.10.146", web);
-		Node refactor5test2 = new Node("refactor5test2", "peoplemerge.com",
+		Host refactor5test2 = new Host("refactor5test2", "peoplemerge.com",
 				"192.168.10.147", web);
-		Node refactor5test3 = new Node("refactor5test3", "peoplemerge.com",
+		Host refactor5test3 = new Host("refactor5test3", "peoplemerge.com",
 				"192.168.10.148", db);
-		environment.addNode(refactor5test1);
-		environment.addNode(refactor5test2);
-		environment.addNode(refactor5test3);
+		environment.addHost(refactor5test1);
+		environment.addHost(refactor5test2);
+		environment.addHost(refactor5test3);
 		List<Environment> environments = new ArrayList<Environment>();
 		environments.add(environment);
 		String actual = puppet.getSitePp(environments);

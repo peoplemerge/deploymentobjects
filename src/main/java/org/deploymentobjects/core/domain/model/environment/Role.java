@@ -12,14 +12,14 @@ public class Role implements AcceptsCommands {
 
 	private final String name;
 
-	private List<Node> nodes = new LinkedList<Node>();
+	private List<Host> hosts = new LinkedList<Host>();
 
-	public List<Node> getNodes() {
-		return nodes;
+	public List<Host> getHosts() {
+		return hosts;
 	}
 
-	public void addNode(Node node) {
-		this.nodes.add(node);
+	public void addHost(Host node) {
+		this.hosts.add(node);
 	}
 
 	public Role(String name) {
@@ -32,7 +32,7 @@ public class Role implements AcceptsCommands {
 	}
 
 	public String toString() {
-		return new ToStringBuilder(this).append("name", name).append("nodes",nodes).toString();
+		return new ToStringBuilder(this).append("name", name).append("nodes",hosts).toString();
 	}
 
 	@Override

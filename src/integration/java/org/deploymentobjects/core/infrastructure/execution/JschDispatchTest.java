@@ -2,8 +2,8 @@ package org.deploymentobjects.core.infrastructure.execution;
 import junit.framework.Assert;
 
 import org.deploymentobjects.core.application.ScriptedCommand;
-import org.deploymentobjects.core.domain.model.environment.Node;
-import org.deploymentobjects.core.domain.model.environment.Node.Type;
+import org.deploymentobjects.core.domain.model.environment.Host;
+import org.deploymentobjects.core.domain.model.environment.Host.Type;
 import org.deploymentobjects.core.domain.model.execution.Step;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
 import org.junit.Test;
@@ -31,7 +31,7 @@ public class JschDispatchTest {
 		JschDispatch jsch = new JschDispatch(username);
 		String commandStr = "/bin/ls /bin/ls"; // list the 'ls' command. Should
 		// work on every *nix AFAIK
-		Node node = new Node(host);
+		Host node = new Host(host);
 		ScriptedCommand command = new ScriptedCommand(commandStr);
 		Step step = new Step(command, node);
 		jsch.dispatch(step);

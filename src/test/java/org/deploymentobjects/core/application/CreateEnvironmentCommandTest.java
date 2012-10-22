@@ -38,8 +38,8 @@ import org.deploymentobjects.core.domain.model.configuration.NamingService;
 import org.deploymentobjects.core.domain.model.configuration.NfsMount;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
-import org.deploymentobjects.core.domain.model.environment.Node;
-import org.deploymentobjects.core.domain.model.environment.NodePool;
+import org.deploymentobjects.core.domain.model.environment.Host;
+import org.deploymentobjects.core.domain.model.environment.HostPool;
 import org.deploymentobjects.core.domain.model.environment.provisioning.KickstartServer;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
@@ -55,7 +55,7 @@ public class CreateEnvironmentCommandTest {
 	//Persistence persistence = mock(Persistence.class);
 	EnvironmentRepository repo = mock(EnvironmentRepository.class);
 	Dispatchable dispatch = mock(Dispatchable.class);
-	NodePool pool = mock(NodePool.class);
+	HostPool pool = mock(HostPool.class);
 	NamingService namingService = mock(NamingService.class);
 	KickstartServer kickstartServer = mock(KickstartServer.class);
 	Logger logger =  mock(Logger.class);
@@ -77,16 +77,16 @@ public class CreateEnvironmentCommandTest {
 		CreateEnvironmentCommand command = buildCommand(1);
 		// so where is the libvirt / etc command encapsulated to hide
 		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
-		when(pool.createStep(eq(Node.Type.SMALL), anyString())).thenReturn(
+		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 		ExitCode exitCode = command.execute();
 		assertEquals(ExitCode.SUCCESS, exitCode);
-		verify(pool).createStep(eq(Node.Type.SMALL), anyString());
+		verify(pool).createStep(eq(Host.Type.SMALL), anyString());
 		verify(dispatch).dispatch(dummyStep);
 		Environment expected = new Environment("test");
-		Node expectedNode = new Node("test1", Node.Type.SMALL, pool);
+		Host expectedNode = new Host("test1", Host.Type.SMALL, pool);
 		expectedNode.setDomainname("peoplemerge.com");
-		expected.addNode(expectedNode);
+		expected.addHost(expectedNode);
 		verify(repo).save(eq(expected));
 
 	}
@@ -111,7 +111,7 @@ public class CreateEnvironmentCommandTest {
 	private CreateEnvironmentCommand.Builder builder(int numNodes) {
 		CreateEnvironmentCommand.Builder createCommandBuilder = new CreateEnvironmentCommand.Builder(
 				"test", repo);
-		createCommandBuilder.withNodes(numNodes, Node.Type.SMALL, pool);
+		createCommandBuilder.withNodes(numNodes, Host.Type.SMALL, pool);
 		// TODO the dispatch method should probably be control-inverted.
 		createCommandBuilder.withDispatch(dispatch);
 		createCommandBuilder.withKickstartServer(kickstartServer);
@@ -124,17 +124,17 @@ public class CreateEnvironmentCommandTest {
 
 		CreateEnvironmentCommand command = buildCommand(2);
 		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
-		when(pool.createStep(eq(Node.Type.SMALL), anyString())).thenReturn(
+		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 		ExitCode exitCode = command.execute();
 		assertEquals(ExitCode.SUCCESS, exitCode);
 		Environment expected = new Environment("test");
-		Node expectedNode = new Node("test1", Node.Type.SMALL, pool);
+		Host expectedNode = new Host("test1", Host.Type.SMALL, pool);
 		expectedNode.setDomainname("peoplemerge.com");
-		expected.addNode(expectedNode);
-		Node expectedNode2 = new Node("test2", Node.Type.SMALL, pool);
+		expected.addHost(expectedNode);
+		Host expectedNode2 = new Host("test2", Host.Type.SMALL, pool);
 		expectedNode2.setDomainname("peoplemerge.com");
-		expected.addNode(expectedNode2);
+		expected.addHost(expectedNode2);
 		verify(repo).save(eq(expected));
 
 	}
@@ -143,7 +143,7 @@ public class CreateEnvironmentCommandTest {
 	public void addToNameService() throws Exception {
 		CreateEnvironmentCommand command = buildCommand(2);
 		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
-		when(pool.createStep(eq(Node.Type.SMALL), anyString())).thenReturn(
+		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 		//when(repo)
 		/*
@@ -170,12 +170,12 @@ public class CreateEnvironmentCommandTest {
 		String tempDir = new File(tempFile.getParent()).getAbsolutePath();
 		builder
 				.withKickstartServer(new KickstartServer(tempDir,
-						new NfsMount(),new Puppet(new Node("puppetmaster1", "peoplemerge.com", "192.168.10.137"))));
+						new NfsMount(),new Puppet(new Host("puppetmaster1", "peoplemerge.com", "192.168.10.137"))));
 		CreateEnvironmentCommand command = builder.build();
 
 		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
 		dispatchSuccessful();
-		when(pool.createStep(eq(Node.Type.SMALL), anyString())).thenReturn(
+		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 
 		// when(mockrepo.retrieve("global.kickstartserver")).thenReturn("localhost:/"
@@ -205,7 +205,7 @@ public class CreateEnvironmentCommandTest {
 		CreateEnvironmentCommand command = builder.build();
 
 		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
-		when(pool.createStep(eq(Node.Type.SMALL), anyString())).thenReturn(
+		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 		command.execute();
 		verify(logger).info("Writing kickstart for test1");

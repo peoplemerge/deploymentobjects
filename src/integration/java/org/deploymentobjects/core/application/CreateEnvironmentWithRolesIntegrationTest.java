@@ -5,9 +5,9 @@ import static org.junit.Assert.assertEquals;
 import org.deploymentobjects.core.application.CreateEnvironmentCommand;
 import org.deploymentobjects.core.domain.model.configuration.NfsMount;
 import org.deploymentobjects.core.domain.model.environment.Hypervisor;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.environment.Role;
-import org.deploymentobjects.core.domain.model.environment.Node.Type;
+import org.deploymentobjects.core.domain.model.environment.Host.Type;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
 import org.deploymentobjects.core.infrastructure.configuration.Puppet;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
@@ -27,7 +27,7 @@ public class CreateEnvironmentWithRolesIntegrationTest {
 				Type.SMALL, new Hypervisor("root", "kowalski", new NfsMount()),
 				new Role("standard"))
 				.withConfigurationManagement(
-						new Puppet(new Node("puppetmaster1", "peoplemerge.com",
+						new Puppet(new Host("puppetmaster1", "peoplemerge.com",
 								"192.168.10.137"))).withDispatch(
 						new JschDispatch("root")).build();
 		ExitCode exit = command.execute();

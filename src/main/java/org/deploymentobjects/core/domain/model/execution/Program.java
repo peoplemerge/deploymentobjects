@@ -36,7 +36,7 @@ import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.TokenStream;
 import org.deploymentobjects.core.DeploymentObjectsLexer;
 import org.deploymentobjects.core.DeploymentObjectsParser;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 
 
 public class Program {
@@ -61,7 +61,7 @@ public class Program {
 		for (Step step : steps) {
 			// Loop through nodes here too?
 			// Really need to use the runner!
-			for (Node node : step.getNodes()) {
+			for (Host node : step.getHosts()) {
 				toRun += "on " + node + " run " + step.getCommand();
 			}
 		}

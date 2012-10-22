@@ -12,7 +12,7 @@ import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.infrastructure.configuration.TemplateHostsFile;
 import org.deploymentobjects.core.infrastructure.persistence.Persistence;
 import org.deploymentobjects.core.infrastructure.persistence.YamlPersistence;
@@ -44,10 +44,10 @@ public class TemplateHostsFileTest {
 		File actual = File.createTempFile("hosts", "");
 		TemplateHostsFile hostsFile = new TemplateHostsFile(actual, "test-hostsfile.tmpl");
 		Environment env1 = new Environment("env1");
-		env1.addNode(new Node("env1host1", "192.168.0.10"));
-		env1.addNode(new Node("env1host2", "192.168.0.11"));
+		env1.addHost(new Host("env1host1", "192.168.0.10"));
+		env1.addHost(new Host("env1host2", "192.168.0.11"));
 		Environment env2 = new Environment("env2");
-		env2.addNode(new Node("env2host1", "192.168.0.20"));
+		env2.addHost(new Host("env2host1", "192.168.0.20"));
 	
 		List<Environment> environments = new LinkedList<Environment>();
 		environments.add(env1);

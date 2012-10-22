@@ -27,7 +27,7 @@ package org.deploymentobjects.core.infrastructure.execution;
 
 import java.io.InputStream;
 
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
 import org.deploymentobjects.core.domain.model.execution.Step;
@@ -50,7 +50,7 @@ public class JschDispatch implements Dispatchable {
 	public ExitCode dispatch(Step step) throws Exception {
 		// Should use the runner, right?
 		ExitCode retval = ExitCode.SUCCESS;
-		for (Node node : step.getNodes()) {
+		for (Host node : step.getHosts()) {
 			session = jsch.getSession(userName, node.getHostname());
 			jsch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa");
 			java.util.Properties config = new java.util.Properties();

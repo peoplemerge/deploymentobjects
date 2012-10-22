@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
 
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.environment.Role;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperEnvironmentRepository;
@@ -33,10 +33,10 @@ public class ZookeeperEnvironmentRepositoryTest {
 		String environmentName = "testenv";
 		String hostname = "testenv1";
 		String ip = "192.168.0.5";
-		Node expected = new Node(hostname, ip);
+		Host expected = new Host(hostname, ip);
 		expected.setIp(ip);
 		Environment expectedEnv = new Environment(environmentName);
-		expectedEnv.addNode(expected);
+		expectedEnv.addHost(expected);
 
 		Composite environment = new Composite("environments/" + environmentName, hostname);
 		Composite roles = new Composite("environments/" + environmentName + "/roles","");
@@ -48,8 +48,8 @@ public class ZookeeperEnvironmentRepositoryTest {
 		String hostkey = "hosts/" + hostname;
 		when(mock.retrieve(hostkey)).thenReturn(host);
 		Environment actualEnv = repo.lookupByName(environmentName);
-		assertEquals(actualEnv.getNodes().size(), 1);
-		Node actual = actualEnv.getNodes().get(0);
+		assertEquals(actualEnv.getHosts().size(), 1);
+		Host actual = actualEnv.getHosts().get(0);
 		assertEquals(expected, actual);
 		assertEquals(expectedEnv, actualEnv);
 		//TODO verifyNoMoreInteractions(mock);
@@ -63,11 +63,11 @@ public class ZookeeperEnvironmentRepositoryTest {
 		String hostname = "testenv1";
 		String ip = "192.168.0.5";
 		String domainnameStr = "example.com";
-		Node expected = new Node(hostname, ip);
+		Host expected = new Host(hostname, ip);
 		expected.setDomainname(domainnameStr);
 		
 		Environment expectedEnv = new Environment(environmentName);
-		expectedEnv.addNode(expected);
+		expectedEnv.addHost(expected);
 
 		Composite environment = new Composite("environments/" + environmentName, hostname);
 		Composite roles = new Composite("environments/" + environmentName + "/roles","");
@@ -81,8 +81,8 @@ public class ZookeeperEnvironmentRepositoryTest {
 		String hostkey = "hosts/" + hostname;
 		when(mock.retrieve(hostkey)).thenReturn(host);
 		Environment actualEnv = repo.lookupByName(environmentName);
-		assertEquals(actualEnv.getNodes().size(), 1);
-		Node actual = actualEnv.getNodes().get(0);
+		assertEquals(actualEnv.getHosts().size(), 1);
+		Host actual = actualEnv.getHosts().get(0);
 		assertEquals(expected, actual);
 		assertEquals(expectedEnv, actualEnv);
 		//TODO verifyNoMoreInteractions(mock);
@@ -97,9 +97,9 @@ public class ZookeeperEnvironmentRepositoryTest {
 		String hostname = "testenv1";
 		String ip = "192.168.0.5";
 		String roleName = "testrole";
-		Node expected = new Node(hostname, ip, new Role(roleName));
+		Host expected = new Host(hostname, ip, new Role(roleName));
 		Environment expectedEnv = new Environment(environmentName);
-		expectedEnv.addNode(expected);
+		expectedEnv.addHost(expected);
 		
 		Composite host = new Composite("hosts/" + hostname, ip);
 
@@ -115,8 +115,8 @@ public class ZookeeperEnvironmentRepositoryTest {
 		String hostkey = "hosts/" + hostname;
 		when(mock.retrieve(hostkey)).thenReturn(host);
 		Environment actualEnv = repo.lookupByName(environmentName);
-		assertEquals(actualEnv.getNodes().size(), 1);
-		Node actual = actualEnv.getNodes().get(0);
+		assertEquals(actualEnv.getHosts().size(), 1);
+		Host actual = actualEnv.getHosts().get(0);
 		assertEquals(expected, actual);
 		assertEquals(expectedEnv, actualEnv);
 		//TODO verifyNoMoreInteractions(mock);
@@ -130,9 +130,9 @@ public class ZookeeperEnvironmentRepositoryTest {
 		String ip = "192.168.0.5";
 		String roleName = "testrole1";
 		String roleName2 = "testrole2";
-		Node expected = new Node(hostname, ip, new Role(roleName), new Role(roleName2));
+		Host expected = new Host(hostname, ip, new Role(roleName), new Role(roleName2));
 		Environment expectedEnv = new Environment(environmentName);
-		expectedEnv.addNode(expected);
+		expectedEnv.addHost(expected);
 		
 		Composite environment = new Composite("environments/" + environmentName, hostname);
 		Composite host = new Composite("hosts/" + hostname, ip);
@@ -149,8 +149,8 @@ public class ZookeeperEnvironmentRepositoryTest {
 		String hostkey = "hosts/" + hostname;
 		when(mock.retrieve(hostkey)).thenReturn(host);
 		Environment actualEnv = repo.lookupByName(environmentName);
-		assertEquals(actualEnv.getNodes().size(), 1);
-		Node actual = actualEnv.getNodes().get(0);
+		assertEquals(actualEnv.getHosts().size(), 1);
+		Host actual = actualEnv.getHosts().get(0);
 		assertEquals(expected, actual);
 		assertEquals(expectedEnv, actualEnv);
 		//TODO verifyNoMoreInteractions(mock);
@@ -171,15 +171,15 @@ public class ZookeeperEnvironmentRepositoryTest {
 		{
 			Environment first = new Environment(firstStr);
 			Role firstRole = new Role(firstStr);
-			Node first1 = new Node(first1Str, first1ipStr, firstRole);
-			Node first2 = new Node(first2Str, first2ipStr, firstRole);
-			first.addNode(first1);
-			first.addNode(first2);
+			Host first1 = new Host(first1Str, first1ipStr, firstRole);
+			Host first2 = new Host(first2Str, first2ipStr, firstRole);
+			first.addHost(first1);
+			first.addHost(first2);
 
 			Environment second = new Environment(secondStr);
 			Role secondRole = new Role(secondStr);
-			Node second1 = new Node(second1Str, second1ipStr, secondRole);
-			second.addNode(second1);
+			Host second1 = new Host(second1Str, second1ipStr, secondRole);
+			second.addHost(second1);
 
 			expected.add(first);
 			expected.add(second);
@@ -231,9 +231,9 @@ public class ZookeeperEnvironmentRepositoryTest {
 		expectedEnvironment.addChild(hasNoRoles);
 		Composite expectedHost = new Composite("hosts/" + hostname, ip);
 		
-		Node node = new Node(hostname, ip);
+		Host node = new Host(hostname, ip);
 		Environment env = new Environment(environmentName);
-		env.addNode(node);
+		env.addHost(node);
 
 		repo.save(env);
 
@@ -260,9 +260,9 @@ public class ZookeeperEnvironmentRepositoryTest {
 		expectedEnvironment.addChild(roles);
 		Composite expectedHost = new Composite("hosts/" + hostname, ip);
 
-		Node node = new Node(hostname, ip, new Role(roleName));
+		Host node = new Host(hostname, ip, new Role(roleName));
 		Environment env = new Environment(environmentName);
-		env.addNode(node);
+		env.addHost(node);
 
 		repo.save(env);
 
@@ -285,9 +285,9 @@ public class ZookeeperEnvironmentRepositoryTest {
 		Composite expectedHost = new Composite("hosts/" + hostname, "");
 
 		// In this test, node is different... no IP
-		Node node = new Node(hostname);
+		Host node = new Host(hostname);
 		Environment env = new Environment(environmentName);
-		env.addNode(node);
+		env.addHost(node);
 
 		repo.save(env);
 		
@@ -314,10 +314,10 @@ public class ZookeeperEnvironmentRepositoryTest {
 		Composite expectedHost = new Composite("hosts/" + hostname, ip);
 		Composite expectedDomainname = new Composite("hosts/" + hostname + "/domainname", domainname);
 
-		Node node = new Node(hostname, ip);
+		Host node = new Host(hostname, ip);
 		node.setDomainname(domainname);
 		Environment env = new Environment(environmentName);
-		env.addNode(node);
+		env.addHost(node);
 
 		repo.save(env);
 		
@@ -347,8 +347,8 @@ public class ZookeeperEnvironmentRepositoryTest {
 		final Environment env = new Environment("test");
 		String nodeName1 = "test1";
 		String nodeName2 = "test2";
-		env.addNode(new Node(nodeName1));
-		env.addNode(new Node(nodeName2));
+		env.addHost(new Host(nodeName1));
+		env.addHost(new Host(nodeName2));
 		
 		Runnable blockThread = new Runnable() {
 			public void run() {
@@ -367,13 +367,13 @@ public class ZookeeperEnvironmentRepositoryTest {
 		Thread.sleep(500);
 
 		String ip1 = "192.168.0.155";
-		repo.nodeAppears(new Node(nodeName1, ip1));
+		repo.nodeAppears(new Host(nodeName1, ip1));
 		// The hosts file should be called but not yet committed
 		Thread.sleep(1000);
 		assertTrue(!isDone);
 		
 		String ip2 = "192.168.0.156";
-		repo.nodeAppears(new Node(nodeName2, ip2));
+		repo.nodeAppears(new Host(nodeName2, ip2));
 		Thread.sleep(1000);
 		assertTrue(isDone);
 

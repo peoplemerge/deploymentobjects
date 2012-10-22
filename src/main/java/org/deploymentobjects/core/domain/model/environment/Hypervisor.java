@@ -31,7 +31,7 @@ import org.deploymentobjects.core.domain.model.execution.ControlsHosts;
 import org.deploymentobjects.core.domain.model.execution.Step;
 import org.deploymentobjects.core.infrastructure.execution.LibvirtAdapter;
 
-public class Hypervisor extends Node implements NodePool {
+public class Hypervisor extends Host implements HostPool {
 
 	
 	private ControlsHosts controller;

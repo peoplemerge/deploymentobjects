@@ -99,11 +99,11 @@ INT_CONST: '0'..'9'+;
 STRING: '"' (~('\\'|'"') )* '"';
 
 
-//NODE_APP_MAPPING :  
+//Host_APP_MAPPING :  
 
-node_classifier returns [NodePool pool] : 'ldap' | 'ec2' | 'dom0' ID {$pool = new Hypervisor($ID.text, new NfsMount());} | 'zookeeper' ;
+node_classifier returns [HostPool pool] : 'ldap' | 'ec2' | 'dom0' ID {$pool = new Hypervisor($ID.text, new NfsMount());} | 'zookeeper' ;
 
-capability returns [Node.Type type] : 'small' {$type = Node.Type.getSmall();} | 'large' | 'database' ;
+capability returns [Host.Type type] : 'small' {$type = Host.Type.getSmall();} | 'large' | 'database' ;
 
 FABRIC : 'fabric';
 MCOLLECTIVE : 'mcollective';
@@ -120,24 +120,24 @@ PATH : ('a'..'z'|'A'..'Z'|'_'|'/'|'\\'|'.');
 ZOOKEEPER_CONNECTION_STRING : ( ID ':' INT_CONST )(COMMA ID ':' INT_CONST )*;
 
 
-//ENVIRONMENT_DEFINITION : 'The' ID 'environment consists of' NODE_APP_MAPPING (COMMA_AND NODE_APP_MAPPING)* PERIOD;
+//ENVIRONMENT_DEFINITION : 'The' ID 'environment consists of' Host_APP_MAPPING (COMMA_AND Host_APP_MAPPING)* PERIOD;
 
 
 
 // TODO allow better here docs like so http://www.antlr.org/pipermail/antlr-interest/2005-September/013673.html
-scripted_statement returns [Executable command, Node node] : 'On' + 
+scripted_statement returns [Executable command, Host node] : 'On' + 
 	 	'host' ID {}
 //	|   'role' ID 
 //	|   'environment' ID 
 	'run:' '<<EOF'
  	body=.* {
  		$command = new ScriptedCommand($body.text);
- 		$node = new Node($ID.text);
+ 		$node = new Host($ID.text);
  	} 
  	'EOF';
 
 
-node_param returns [Integer qty, Node.Type type, NodePool pool, List<Role> roles] : 
+node_param returns [Integer qty, Host.Type type, HostPool pool, List<Role> roles] : 
 	INT_CONST {$qty = new Integer($INT_CONST.text);}
 	capability {$type = $capability.type;}
 	'nodes from' node_classifier {$pool = $node_classifier.pool;}
@@ -151,7 +151,7 @@ node_param returns [Integer qty, Node.Type type, NodePool pool, List<Role> roles
 	;
 
 
-create_statement returns [Executable command, Node node]:
+create_statement returns [Executable command, Host node]:
 'Create a new environment called' ID 
 	{
 		CreateEnvironmentCommand.Builder builder = new CreateEnvironmentCommand.Builder($ID.text, getEnvironmentRepository());
@@ -189,7 +189,7 @@ dispatch_method : JSCH 'dispatch as user' ID
 //TODO consider storing global config information in zookeeper or whatever persistence
 configuration_management_method : PUPPET 'with puppetmaster on' hostname=ID domainname=ID ipaddress=ID
 {
-	configurationManagement = new Puppet(new Node($hostname.text, $domainname.text, $ipaddress.text));
+	configurationManagement = new Puppet(new Host($hostname.text, $domainname.text, $ipaddress.text));
 };
 
 persistence_statement : 'Persist with' 
@@ -205,7 +205,7 @@ persistence_statement : 'Persist with'
 
 use_statement : 'Use' (dispatch_method | configuration_management_method);
 
-deploy_statement returns [Executable command, Node node]:
+deploy_statement returns [Executable command, Host node]:
 	'Deploy' version_param module_type
 	'code from' code_repository
 	'to the' ID 'environment'
@@ -237,8 +237,8 @@ program returns [Program program]:
 	persistence_statement
 	(
 		//scripted_statement {$program.addStep($scripted_statement.command, $scripted_statement.node);} | 
-		create_statement {$program.addStep($create_statement.command, new Node(""));} | 
-		deploy_statement {$program.addStep($deploy_statement.command, new Node(""));}
+		create_statement {$program.addStep($create_statement.command, new Host(""));} | 
+		deploy_statement {$program.addStep($deploy_statement.command, new Host(""));}
 	)*
 	(emit_statement | execute_statement)*
 	;

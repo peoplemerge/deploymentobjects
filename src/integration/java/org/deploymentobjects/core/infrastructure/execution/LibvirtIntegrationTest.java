@@ -4,7 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.deploymentobjects.core.application.ScriptedCommand;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.ControlsHosts;
 import org.deploymentobjects.core.domain.model.execution.Step;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
@@ -66,13 +66,13 @@ public class LibvirtIntegrationTest {
 	JschDispatch jsch;
 	String host = "ino";
 	String vm = "test40";
-	Node node;
+	Host node;
 
 	public LibvirtIntegrationTest() {
 		JSch.setLogger(jschLogger);
 		String username = System.getProperty("user.name");
 		jsch = new JschDispatch(username);
-		node = new Node(host);
+		node = new Host(host);
 	}
 
 	@Test

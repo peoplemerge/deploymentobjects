@@ -47,10 +47,10 @@ public class Environment {
 		this.name = name;
 	}
 
-	private List<Node> nodes = new LinkedList<Node>();
+	private List<Host> hosts = new LinkedList<Host>();
 	
 	public Role lookupRoleByName(String roleName){
-		for(Node node : nodes){
+		for(Host node : hosts){
 			for(Role role : node.getRoles()){
 				if(role.getName().equals(roleName)){
 					return role;
@@ -60,12 +60,12 @@ public class Environment {
 		return null;
 	}
 
-	public void addNode(Node node) {
-		nodes.add(node);
+	public void addHost(Host node) {
+		hosts.add(node);
 	}
 
-	public List<Node> getNodes() {
-		return nodes;
+	public List<Host> getHosts() {
+		return hosts;
 	}
 
 	public String getName() {
@@ -73,11 +73,11 @@ public class Environment {
 	}
 
 	public String toString() {
-		return name + ": " + nodes;
+		return name + ": " + hosts;
 	}
 	
 	public boolean containsHostNamed(String nodeName){
-		for(Node node : nodes){
+		for(Host node : hosts){
 			if(node.getHostname().equals(nodeName)){
 				return true;
 			}
@@ -85,8 +85,8 @@ public class Environment {
 		return false;
 	}
 	
-	public Node getNodeByName(String nodeName){
-		for(Node node : nodes){
+	public Host getHostByName(String nodeName){
+		for(Host node : hosts){
 			if(node.getHostname().equals(nodeName)){
 				return node;
 			}
@@ -110,14 +110,14 @@ public class Environment {
 		// .appendSuper(super.equals(obj)) - similar
 		// to Node.equals
 		builder.append(name, rhs.name);
-		builder.append(nodes, rhs.nodes);
+		builder.append(hosts, rhs.hosts);
 		return builder.isEquals();
 	}
 
 	@Override
 	public int hashCode() {
 
-		return new HashCodeBuilder(3459, 14237).append(name).append(nodes)
+		return new HashCodeBuilder(3459, 14237).append(name).append(hosts)
 				.toHashCode();
 	}
 }

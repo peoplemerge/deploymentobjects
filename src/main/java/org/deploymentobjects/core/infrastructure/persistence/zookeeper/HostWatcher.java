@@ -5,25 +5,25 @@ import java.util.List;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
 
 public class HostWatcher implements Watcher{
 
-	public interface NodeAppears{
+	public interface HostAppears{
 		/**
 		 * Callback to calling method
 		 * @param hostname
 		 * @param ip
 		 */
-		public void nodeAppears(Node appeared);
+		public void nodeAppears(Host appeared);
 
 	}
 	
-	private NodeAppears callback;
+	private HostAppears callback;
 	private ZookeeperPersistence zk;
 	
-	public HostWatcher(NodeAppears callback, ZookeeperPersistence zk){
+	public HostWatcher(HostAppears callback, ZookeeperPersistence zk){
 		this.callback = callback;
 		this.zk = zk;
 		watchHosts();
@@ -43,7 +43,7 @@ public class HostWatcher implements Watcher{
 				previousHosts.add(host);
 				String path = "hosts/" + host;
 				Composite composite = zk.retrieve(path);
-				Node equivalent = new Node(composite);
+				Host equivalent = new Host(composite);
 				callback.nodeAppears(equivalent);
 			}
 		}

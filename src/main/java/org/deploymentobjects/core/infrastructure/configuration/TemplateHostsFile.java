@@ -38,7 +38,7 @@ import org.deploymentobjects.core.VelocityTemplate;
 import org.deploymentobjects.core.domain.model.configuration.NamingService;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 
 /**
  * Called templated hosts file because it just writes a simple template. This
@@ -63,7 +63,7 @@ public class TemplateHostsFile implements NamingService {
 	public void update(EnvironmentRepository repo) {
 		String allHosts = "";
 		for (Environment env : repo.getAll()) {
-			for (Node node : env.getNodes()) {
+			for (Host node : env.getHosts()) {
 				allHosts += node.getIp() + " " + node.getHostname() + "\n";
 			}
 		}

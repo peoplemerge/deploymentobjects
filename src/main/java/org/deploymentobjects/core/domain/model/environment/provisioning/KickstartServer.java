@@ -9,10 +9,10 @@ import org.deploymentobjects.core.Template;
 import org.deploymentobjects.core.VelocityTemplate;
 import org.deploymentobjects.core.domain.model.configuration.ConfigurationManagement;
 import org.deploymentobjects.core.domain.model.configuration.Storage;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 
 //TODO This class kind of breaks the object model...
-public class KickstartServer extends Node {
+public class KickstartServer extends Host {
 	String hostname;
 	String baseDir;
 	Storage storage;

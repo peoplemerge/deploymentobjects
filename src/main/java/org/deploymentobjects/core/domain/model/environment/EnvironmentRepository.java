@@ -3,9 +3,9 @@ package org.deploymentobjects.core.domain.model.environment;
 import java.util.List;
 
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.HostWatcher;
-import org.deploymentobjects.core.infrastructure.persistence.zookeeper.HostWatcher.NodeAppears;
+import org.deploymentobjects.core.infrastructure.persistence.zookeeper.HostWatcher.HostAppears;
 
-public interface EnvironmentRepository extends HostWatcher.NodeAppears{
+public interface EnvironmentRepository extends HostWatcher.HostAppears{
 	
 	public void save(Environment env);
 	

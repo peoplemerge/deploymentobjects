@@ -39,7 +39,7 @@ import org.deploymentobjects.core.domain.model.execution.AcceptsCommands;
 import org.deploymentobjects.core.domain.shared.Entity;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
 
-public class Node implements AcceptsCommands, Entity<Node> {
+public class Host implements AcceptsCommands, Entity<Host> {
 
 	public enum Type {
 		SMALL, LARGE, DATABASE;
@@ -64,7 +64,7 @@ public class Node implements AcceptsCommands, Entity<Node> {
 		this.domainname = domainname;
 	}
 
-	private NodePool source;
+	private HostPool source;
 
 	private Boolean isProvisioned;
 
@@ -89,22 +89,22 @@ public class Node implements AcceptsCommands, Entity<Node> {
 		return type;
 	}
 
-	public NodePool getSource() {
+	public HostPool getSource() {
 		return source;
 	}
 
-	public Node(String hostname) {
+	public Host(String hostname) {
 		this.hostname = hostname;
 	}
 
-	public Node(String hostname, String ip, Role... roles) {
+	public Host(String hostname, String ip, Role... roles) {
 		this.hostname = hostname;
 		this.ip = ip;
 		isProvisioned = true;
 		addRoles(roles);
 	}
 
-	public Node(String hostname, String domainname, String ip, Role... roles) {
+	public Host(String hostname, String domainname, String ip, Role... roles) {
 		this.hostname = hostname;
 		this.domainname = domainname;
 		this.ip = ip;
@@ -114,14 +114,14 @@ public class Node implements AcceptsCommands, Entity<Node> {
 
 	// TODO use builder or factory when constructing nodes
 	// This constructor makes sense when provisioning Nodes
-	public Node(String hostname, Type type, NodePool source) {
+	public Host(String hostname, Type type, HostPool source) {
 		this.hostname = hostname;
 		this.type = type;
 		this.source = source;
 	}
 
 	// This constructor makes sense when provisioning Nodes
-	public Node(String hostname, String domainname, Type type, NodePool pool,
+	public Host(String hostname, String domainname, Type type, HostPool pool,
 			Role... roles) {
 		this.hostname = hostname;
 		this.domainname = domainname;
@@ -131,7 +131,7 @@ public class Node implements AcceptsCommands, Entity<Node> {
 	}
 
 	// This constructor makes sense when using provisioned Nodes
-	public Node(String hostname, String ip, Type type, NodePool source) {
+	public Host(String hostname, String ip, Type type, HostPool source) {
 		this.hostname = hostname;
 		this.ip = ip;
 		this.type = type;
@@ -139,7 +139,7 @@ public class Node implements AcceptsCommands, Entity<Node> {
 		isProvisioned = true;
 	}
 
-	public Node(Composite composite) {
+	public Host(Composite composite) {
 		// TODO make this a factory, so composite.getKey throws some obvious
 		// exceptions
 		this.hostname = composite.getKey().replace("hosts/", "");
@@ -169,8 +169,8 @@ public class Node implements AcceptsCommands, Entity<Node> {
 	// TODO This is here simply because Environment.getNodes makes sense which
 	// shares the interface AcceptsCommands. Think about ISP, break up
 	// AcceptsCommands?
-	public List<Node> getNodes() {
-		List<Node> asList = new ArrayList<Node>();
+	public List<Host> getHosts() {
+		List<Host> asList = new ArrayList<Host>();
 		asList.add(this);
 		return asList;
 	}
@@ -192,7 +192,7 @@ public class Node implements AcceptsCommands, Entity<Node> {
 
 	public void addRole(Role role) {
 		roles.add(role);
-		role.addNode(this);
+		role.addHost(this);
 	}
 
 	public void addRoles(Role... roles) {
@@ -216,7 +216,7 @@ public class Node implements AcceptsCommands, Entity<Node> {
 		if (obj.getClass() != getClass()) {
 			return false;
 		}
-		Node rhs = (Node) obj;
+		Host rhs = (Host) obj;
 		// TODO invesigate why it fails when .appendSuper(super.equals(obj))
 		EqualsBuilder builder = new EqualsBuilder().append(hostname,
 				rhs.hostname);
@@ -247,7 +247,7 @@ public class Node implements AcceptsCommands, Entity<Node> {
 	}
 
 	@Override
-	public boolean sameIdentityAs(Node other) {
+	public boolean sameIdentityAs(Host other) {
 		// TODO Auto-generated method stub
 		return false;
 	}

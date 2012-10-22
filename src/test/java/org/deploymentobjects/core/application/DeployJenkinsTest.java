@@ -15,7 +15,7 @@ import org.deploymentobjects.core.application.DeployApplicationCommand;
 import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.environment.Role;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
@@ -37,7 +37,7 @@ public class DeployJenkinsTest {
 
 		when(repo.lookupByName("jenkins1env")).thenReturn(environment);
 		Role role = new Role("standard");
-		Node node = new Node("jenkins1env");
+		Host node = new Host("jenkins1env");
 		node.addRole(role); // TODO consider refactoring transitive relationship
 		when(environment.lookupRoleByName("standard")).thenReturn(role);
 		DeployApplicationCommand cmd = new DeployApplicationCommand.Builder(

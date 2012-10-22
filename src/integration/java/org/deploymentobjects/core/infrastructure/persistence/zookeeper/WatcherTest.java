@@ -2,7 +2,7 @@ package org.deploymentobjects.core.infrastructure.persistence.zookeeper;
 
 import static org.mockito.Mockito.*;
 
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.HostWatcher;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence;
@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class WatcherTest {
 
-	HostWatcher.NodeAppears callback = mock(HostWatcher.NodeAppears.class);
+	HostWatcher.HostAppears callback = mock(HostWatcher.HostAppears.class);
 
 	@Test
 	public void testProcess() throws Exception {
@@ -22,7 +22,7 @@ public class WatcherTest {
 		String host = "watchertest".intern();
 		String ip = "192.168.10.111".intern();
 		Composite composite = new Composite("hosts/" + host, ip);
-		Node node = new Node(composite);
+		Host node = new Host(composite);
 
 		try {
 			repo.save(composite);

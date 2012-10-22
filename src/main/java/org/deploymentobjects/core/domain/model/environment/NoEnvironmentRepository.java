@@ -34,7 +34,7 @@ public class NoEnvironmentRepository implements EnvironmentRepository {
 	}
 
 	@Override
-	public void nodeAppears(Node appeared) {
+	public void nodeAppears(Host appeared) {
 
 	}
 

@@ -13,15 +13,15 @@ import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.configuration.ConfigurationManagement;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.Executable;
 import org.deploymentobjects.core.domain.model.execution.Step;
 
 public class Puppet implements ConfigurationManagement {
 
-	private Node puppetmaster;
+	private Host puppetmaster;
 
-	public Puppet(Node puppetmaster) {
+	public Puppet(Host puppetmaster) {
 		this.puppetmaster = puppetmaster;
 	}
 
@@ -49,7 +49,7 @@ public class Puppet implements ConfigurationManagement {
 				+ "repo --name=\"puppetlabs-deps\"  --baseurl=http://yum.puppetlabs.com/el/6/dependencies/i386 --cost=100";
 	}
 
-	public Step postCompleteStep(Node node) {
+	public Step postCompleteStep(Host node) {
 		String body = "puppet cert sign " + node.getHostname() + "."
 				+ node.getDomainname();
 		Executable postComplete = new ScriptedCommand(body);
@@ -105,7 +105,7 @@ public class Puppet implements ConfigurationManagement {
 	}
 
 	@Override
-	public Step nodeProvisioned(Node node) {
+	public Step nodeProvisioned(Host node) {
 		String body = "puppet agent --test\n"
 				+ "if [[ $? -eq 2 ]]; then exit 0;\n"
 				+ "fi\n" 

@@ -36,8 +36,8 @@ import org.deploymentobjects.core.domain.model.configuration.NfsMount;
 import org.deploymentobjects.core.domain.model.configuration.NoConfigurationManagement;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
-import org.deploymentobjects.core.domain.model.environment.Node;
-import org.deploymentobjects.core.domain.model.environment.NodePool;
+import org.deploymentobjects.core.domain.model.environment.Host;
+import org.deploymentobjects.core.domain.model.environment.HostPool;
 import org.deploymentobjects.core.domain.model.environment.Role;
 import org.deploymentobjects.core.domain.model.environment.provisioning.KickstartServer;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 
 public class CreateEnvironmentCommand implements Executable {
 
-	private List<Node> nodes = new ArrayList<Node>();
+	private List<Host> nodes = new ArrayList<Host>();
 	private String environmentName;
 	// private Persistence persistence;
 	private EnvironmentRepository repo;
@@ -75,14 +75,14 @@ public class CreateEnvironmentCommand implements Executable {
 			command.repo = repo;
 		}
 
-		public Builder withNodes(int quantity, Node.Type type, NodePool pool,
+		public Builder withNodes(int quantity, Host.Type type, HostPool pool,
 				Role... roles) {
 			for (int i = 1; i <= quantity; i++) {
 				String roleName = "";
 				for (Role role : roles) {
 					roleName += role.getName();
 				}
-				Node node = new Node(command.environmentName + roleName + i,
+				Host node = new Host(command.environmentName + roleName + i,
 						"peoplemerge.com", type, pool, roles);
 				command.nodes.add(node);
 			}
@@ -140,7 +140,7 @@ public class CreateEnvironmentCommand implements Executable {
 	@Override
 	public ExitCode execute() {
 		startTime = System.currentTimeMillis();
-		for (Node node : nodes) {
+		for (Host node : nodes) {
 			try {
 				logger.info("Writing kickstart for " + node.getHostname());
 				kickstartServer.writeKickstartFile(node.getHostname());
@@ -150,7 +150,7 @@ public class CreateEnvironmentCommand implements Executable {
 			}
 		}
 		List<Step> dispatched = new LinkedList<Step>();
-		for (Node node : nodes) {
+		for (Host node : nodes) {
 			Step step = node.getSource().createStep(node.getType(),
 					node.getHostname());
 			try {
@@ -172,7 +172,7 @@ public class CreateEnvironmentCommand implements Executable {
 			dispatched.add(step);
 		}
 		Environment environment = new Environment(environmentName);
-		for (Node node : nodes) {
+		for (Host node : nodes) {
 			// TODO extract these timing variables to the grammar
 			logger.info("Polling for " + node + " to stop");
 
@@ -195,7 +195,7 @@ public class CreateEnvironmentCommand implements Executable {
 				logger.error("Dispatch execution failed: " + step.getOutput());
 				return ExitCode.FAILURE;
 			}
-			environment.addNode(node);
+			environment.addHost(node);
 		}
 
 		logger.info("Waiting for nodes to write to Zookeeper");
@@ -233,7 +233,7 @@ public class CreateEnvironmentCommand implements Executable {
 		}
 
 		try {
-			for (Node node : nodes) {
+			for (Host node : nodes) {
 				logger.info("Using " + configurationManagement
 						+ " to complete node provisioning on " + node);
 				Step step = configurationManagement.nodeProvisioned(node);

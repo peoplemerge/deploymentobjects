@@ -29,12 +29,12 @@ import java.util.List;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 
 public class Step implements Executable {
 
 	private Executable command;
-	private AcceptsCommands node;
+	private AcceptsCommands target;
 	private String output;
 
 	public String getOutput() {
@@ -45,17 +45,17 @@ public class Step implements Executable {
 		this.output = output;
 	}
 
-	public Step(Executable command, AcceptsCommands node) {
+	public Step(Executable command, AcceptsCommands target) {
 		this.command = command;
-		this.node = node;
+		this.target = target;
 	}
 
 	public Executable getCommand() {
 		return command;
 	}
 
-	public List<Node> getNodes() {
-		return node.getNodes();
+	public List<Host> getHosts() {
+		return target.getHosts();
 	}
 
 	@Override
@@ -65,9 +65,9 @@ public class Step implements Executable {
 
 	public String toString() {
 		if (output == null) {
-			return "Running: " + command + " on " + node;
+			return "Running: " + command + " on " + target;
 		} else {
-			return "Ran: " + command + " on " + node + " result: " + output;
+			return "Ran: " + command + " on " + target + " result: " + output;
 		}
 	}
 
@@ -85,7 +85,7 @@ public class Step implements Executable {
 		Step rhs = (Step) obj;
 		// TODO invesigate why it fails when .appendSuper(super.equals(obj))
 		EqualsBuilder builder = new EqualsBuilder()
-				.append(command, rhs.command).append(node, rhs.node);
+				.append(command, rhs.command).append(target, rhs.target);
 		if (!(output == null && rhs.output == null)) {
 			builder.append(output, rhs.output);
 		}		
@@ -95,7 +95,7 @@ public class Step implements Executable {
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(1245737, 534515).append(command)
-				.append(node).append(output).toHashCode();
+				.append(target).append(output).toHashCode();
 	}
 
 }

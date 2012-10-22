@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.deploymentobjects.core.application.DeployApplicationCommand;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
 import org.deploymentobjects.core.domain.model.execution.Step;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
@@ -43,7 +43,7 @@ public class DeployJenkinsIntegrationTest {
 		ExitCode exit = cmd.execute();
 		assertEquals(ExitCode.SUCCESS, exit);
 		for (Step step : cmd.getSteps()) {
-			for (Node node : step.getNodes()) {
+			for (Host node : step.getHosts()) {
 				testSiteUp(node.getHostname());
 			}
 		}

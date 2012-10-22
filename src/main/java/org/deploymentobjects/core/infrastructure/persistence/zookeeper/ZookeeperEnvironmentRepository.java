@@ -9,7 +9,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
-import org.deploymentobjects.core.domain.model.environment.Node;
+import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.environment.Role;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
 import org.slf4j.Logger;
@@ -58,12 +58,12 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 			for (String nodeWithoutRole : nodesWithoutRoles.split(SEPERATOR)) {
 				String key = hostsKey + "/" + nodeWithoutRole;
 				Composite hostComposite = persistence.retrieve(key);
-				Node node = new Node(nodeWithoutRole, hostComposite.getValue());
+				Host node = new Host(nodeWithoutRole, hostComposite.getValue());
 				Composite domainname = hostComposite.getChild(key + "/domainname");
 				if(domainname != null){
 					node.setDomainname(domainname.getValue());
 				}
-				env.addNode(node);
+				env.addHost(node);
 			}
 		}
 		// If there this environment has nodes in a role
@@ -79,16 +79,16 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 					String key = hostsKey + "/" + hostName;
 					Composite hostComposite = persistence.retrieve(key);
 					if (env.containsHostNamed(hostName)) {
-						Node node = env.getNodeByName(hostName);
+						Host node = env.getHostByName(hostName);
 						node.addRole(role);
 						Composite domainname = hostComposite.getChild(key + "/domainname");
 						if(domainname != null){
 							node.setDomainname(domainname.getValue());
 						}
 					} else {
-						Node node = new Node(hostName,
+						Host node = new Host(hostName,
 								hostComposite.getValue(), role);
-						env.addNode(node);
+						env.addHost(node);
 						Composite domainname = hostComposite.getChild(key + "/domainname");
 						if(domainname != null){
 							node.setDomainname(domainname.getValue());
@@ -123,7 +123,7 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 		// ones. TODO test corner cases.
 		String hostsWithoutRole = "";
 		Map<String, String> rolesToHostNames = new TreeMap<String, String>();
-		for (Node node : env.getNodes()) {
+		for (Host node : env.getHosts()) {
 			if (node.getRoles().size() == 0) {
 				if (hostsWithoutRole == "") {
 					hostsWithoutRole = node.getHostname();
@@ -189,13 +189,13 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 	private Map<String, Environment> environmentsToProvision = new HashMap<String, Environment>();
 
 	// TODO more unit tests around this logic
-	public synchronized void nodeAppears(Node appeared) {
+	public synchronized void nodeAppears(Host appeared) {
 		// logger.debug("appeared: " + appeared);
 		for (String environmentName : environmentsToProvision.keySet()) {
 			boolean hasRemaining = false;
 			Environment environment = environmentsToProvision
 					.get(environmentName);
-			for (Node node : environment.getNodes()) {
+			for (Host node : environment.getHosts()) {
 				if (node.getHostname().equals(appeared.getHostname())) {
 					logger.debug("provisioned: " + node);
 					node.setProvisioned();
