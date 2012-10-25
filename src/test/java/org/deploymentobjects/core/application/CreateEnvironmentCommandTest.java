@@ -68,28 +68,6 @@ public class CreateEnvironmentCommandTest {
 	// Step to add the node to the naming service
 	// Step to add the environment to the repo
 
-	@Test
-	public void createOneNode() throws Exception {
-
-		// TODO the Dom0 abstraction with NodePool should be overloaded or
-		// perhaps rethought since we actually want to get the dom0 host from
-		// the repository state
-		CreateEnvironmentCommand command = buildCommand(1);
-		// so where is the libvirt / etc command encapsulated to hide
-		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
-		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
-				dummyStep);
-		ExitCode exitCode = command.execute();
-		assertEquals(ExitCode.SUCCESS, exitCode);
-		verify(pool).createStep(eq(Host.Type.SMALL), anyString());
-		verify(dispatch).dispatch(dummyStep);
-		Environment expected = new Environment("test");
-		Host expectedNode = new Host("test1", Host.Type.SMALL, pool);
-		expectedNode.setDomainname("peoplemerge.com");
-		expected.addHost(expectedNode);
-		verify(repo).save(eq(expected));
-
-	}
 
 	private CreateEnvironmentCommand buildCommand(int numNodes) {
 		CreateEnvironmentCommand.Builder createCommandBuilder = builder(numNodes);
@@ -117,6 +95,29 @@ public class CreateEnvironmentCommandTest {
 		createCommandBuilder.withKickstartServer(kickstartServer);
 		createCommandBuilder.withNamingService(namingService);
 		return createCommandBuilder;
+	}
+
+	@Test
+	public void createOneNode() throws Exception {
+
+		// TODO the Dom0 abstraction with NodePool should be overloaded or
+		// perhaps rethought since we actually want to get the dom0 host from
+		// the repository state
+		CreateEnvironmentCommand command = buildCommand(1);
+		// so where is the libvirt / etc command encapsulated to hide
+		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
+				dummyStep);
+		ExitCode exitCode = command.execute();
+		assertEquals(ExitCode.SUCCESS, exitCode);
+		verify(pool).createStep(eq(Host.Type.SMALL), anyString());
+		verify(dispatch).dispatch(dummyStep);
+		Environment expected = new Environment("test");
+		Host expectedNode = new Host("test1", Host.Type.SMALL, pool);
+		expectedNode.setDomainname("peoplemerge.com");
+		expected.addHost(expectedNode);
+		verify(repo).save(eq(expected));
+
 	}
 
 	@Test
