@@ -41,14 +41,10 @@ import org.deploymentobjects.core.domain.model.environment.Host;
 
 public class Program {
 
-	private List<Step> steps = new LinkedList<Step>();
+	private List<Executable> steps = new LinkedList<Executable>();
 
-	public void addStep(Executable command, AcceptsCommands acceptsCommands) {
-		Step step = new Step(command, acceptsCommands);
-		steps.add(step);
-	}
 
-	public List<Step> getSteps() {
+	public List<Executable> getSteps() {
 		return steps;
 	}
 
@@ -57,19 +53,12 @@ public class Program {
 	}
 
 	public String toString() {
-		String toRun = "";
-		for (Step step : steps) {
-			// Loop through nodes here too?
-			// Really need to use the runner!
-			for (Host node : step.getHosts()) {
-				toRun += "on " + node + " run " + step.getCommand();
-			}
-		}
-		return toRun;
+		
+		return steps.toString();
 	}
 
 	public void execute() {
-		for (Step step : steps) {
+		for (Executable step : steps) {
 			// Loop through nodes here too?
 			// Really need to use the runner!
 			System.out.println("Program executing step: " + step.toString());

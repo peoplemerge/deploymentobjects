@@ -29,8 +29,6 @@ import java.io.InputStream;
 
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
-import org.deploymentobjects.core.domain.model.execution.ExitCode;
-import org.deploymentobjects.core.domain.model.execution.Step;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -47,10 +45,12 @@ public class JschDispatch implements Dispatchable {
 		this.userName = userName;
 	}
 
-	public ExitCode dispatch(Step step) throws Exception {
-		// Should use the runner, right?
-		ExitCode retval = ExitCode.SUCCESS;
-		for (Host node : step.getHosts()) {
+
+
+	public Completed dispatch(Requested event) throws Exception {
+		// TODO Should use the runner, right?
+		Completed retval = new Completed(event);
+		for (Host node : event.getTarget().getHosts()) {
 			session = jsch.getSession(userName, node.getHostname());
 			jsch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa");
 			java.util.Properties config = new java.util.Properties();
@@ -59,9 +59,7 @@ public class JschDispatch implements Dispatchable {
 
 			session.connect();
 			Channel channel = session.openChannel("exec");
-			// TODO toString? fix this interface.
-			((ChannelExec) channel).setCommand(step.getCommand().toString());
-			// TODO how to integration test?
+			((ChannelExec) channel).setCommand(event.getExecutable().getContents());
 			InputStream in = channel.getInputStream();
 			
 			InputStream ext = channel.getExtInputStream();
@@ -84,12 +82,12 @@ public class JschDispatch implements Dispatchable {
 						break;
 					output += new String(tmp, 0, i);
 				}
-				// TODO This exit code should probably be returned.
+				// TODO This exit code should probably be better handled.  Think about how...
 				if (channel.isClosed()) {
 					System.out.println("exit-status: "
 							+ channel.getExitStatus());
 					if (channel.getExitStatus() != 0) {
-						retval = ExitCode.FAILURE;
+						retval.setSuccessful(false);
 					}
 					break;
 				}
@@ -97,19 +95,20 @@ public class JschDispatch implements Dispatchable {
 					Thread.sleep(100);
 				} catch (Exception ee) {
 					// TODO - think HARD what to do here
+					//
+					// Will probably need access to something that lets us notify of interruption
+					// for example, return DomainEvent instead?
+					retval.setSuccessful(false);
 					System.out.println(ee.toString());
 					break;
 				}
 			}
 			channel.disconnect();
 			session.disconnect();
-			if (step.getOutput() != null) {
-				step.setOutput(step.getOutput() + "\n" + output);
-			} else {
-				step.setOutput(output);
-			}
+			retval.addOutput(output);
 		}
 		return retval;
 	}
+
 
 }

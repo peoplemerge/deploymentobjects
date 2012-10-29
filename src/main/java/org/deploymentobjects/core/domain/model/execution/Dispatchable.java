@@ -25,6 +25,8 @@
 ************************************************************************/
 package org.deploymentobjects.core.domain.model.execution;
 
+
+
 public interface Dispatchable {
-	public ExitCode dispatch(Step step) throws Exception;
+	public DispatchEvent.Completed dispatch(DispatchEvent.Requested event) throws Exception;
 }

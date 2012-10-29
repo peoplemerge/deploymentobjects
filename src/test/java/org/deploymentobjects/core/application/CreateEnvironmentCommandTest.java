@@ -24,30 +24,33 @@ package org.deploymentobjects.core.application;
  * copyright owner.
  ************************************************************************/
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.net.URL;
 
 import org.apache.commons.io.FileUtils;
-import org.deploymentobjects.core.application.CreateEnvironmentCommand;
-import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.configuration.NamingService;
 import org.deploymentobjects.core.domain.model.configuration.NfsMount;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.environment.HostPool;
-import org.deploymentobjects.core.domain.model.environment.provisioning.KickstartServer;
+import org.deploymentobjects.core.domain.model.environment.provisioning.KickstartTemplateService;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
-import org.deploymentobjects.core.domain.model.execution.Step;
 import org.deploymentobjects.core.infrastructure.configuration.Puppet;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
+
 
 
 public class CreateEnvironmentCommandTest {
@@ -57,7 +60,7 @@ public class CreateEnvironmentCommandTest {
 	Dispatchable dispatch = mock(Dispatchable.class);
 	HostPool pool = mock(HostPool.class);
 	NamingService namingService = mock(NamingService.class);
-	KickstartServer kickstartServer = mock(KickstartServer.class);
+	KickstartTemplateService kickstartServer = mock(KickstartTemplateService.class);
 	Logger logger =  mock(Logger.class);
 
 	// "Create a new environment called development using 1 small nodes from dom0."
@@ -79,7 +82,7 @@ public class CreateEnvironmentCommandTest {
 
 	private void dispatchSuccessful() {
 		try {
-			when(dispatch.dispatch(any(Step.class))).thenReturn(ExitCode.SUCCESS);
+			when(dispatch.dispatch(any(DispatchableStep.class))).thenReturn(ExitCode.SUCCESS);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -105,7 +108,7 @@ public class CreateEnvironmentCommandTest {
 		// the repository state
 		CreateEnvironmentCommand command = buildCommand(1);
 		// so where is the libvirt / etc command encapsulated to hide
-		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		DispatchableStep dummyStep = new DispatchableStep(new ScriptedCommand("dummy"), pool);
 		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 		ExitCode exitCode = command.execute();
@@ -124,7 +127,7 @@ public class CreateEnvironmentCommandTest {
 	public void createMultiple() throws Exception {
 
 		CreateEnvironmentCommand command = buildCommand(2);
-		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		DispatchableStep dummyStep = new DispatchableStep(new ScriptedCommand("dummy"), pool);
 		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 		ExitCode exitCode = command.execute();
@@ -143,7 +146,7 @@ public class CreateEnvironmentCommandTest {
 	@Test
 	public void addToNameService() throws Exception {
 		CreateEnvironmentCommand command = buildCommand(2);
-		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		DispatchableStep dummyStep = new DispatchableStep(new ScriptedCommand("dummy"), pool);
 		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 		//when(repo)
@@ -170,11 +173,11 @@ public class CreateEnvironmentCommandTest {
 		tempFile.deleteOnExit();
 		String tempDir = new File(tempFile.getParent()).getAbsolutePath();
 		builder
-				.withKickstartServer(new KickstartServer(tempDir,
+				.withKickstartServer(new KickstartTemplateService(tempDir,
 						new NfsMount(),new Puppet(new Host("puppetmaster1", "peoplemerge.com", "192.168.10.137"))));
 		CreateEnvironmentCommand command = builder.build();
 
-		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		DispatchableStep dummyStep = new DispatchableStep(new ScriptedCommand("dummy"), pool);
 		dispatchSuccessful();
 		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
@@ -205,7 +208,7 @@ public class CreateEnvironmentCommandTest {
 		builder.withLogger(logger);
 		CreateEnvironmentCommand command = builder.build();
 
-		Step dummyStep = new Step(new ScriptedCommand("dummy"), pool);
+		DispatchableStep dummyStep = new DispatchableStep(new ScriptedCommand("dummy"), pool);
 		when(pool.createStep(eq(Host.Type.SMALL), anyString())).thenReturn(
 				dummyStep);
 		command.execute();

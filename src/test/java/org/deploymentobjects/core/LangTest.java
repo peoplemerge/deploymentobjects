@@ -31,7 +31,7 @@ import org.deploymentobjects.core.application.CreateEnvironmentCommand;
 import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.execution.Executable;
 import org.deploymentobjects.core.domain.model.execution.Program;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -46,7 +46,7 @@ public class LangTest {
 			+ "EOF\n";
 		Program program = Program.factory(sentence);
 		
-		Step step = program.getSteps().get(0);
+		DispatchableStep step = program.getSteps().get(0);
 		assertTrue(step.getCommand() instanceof ScriptedCommand);
 		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();	
 		assertEquals("ls",toRun.getBody());
@@ -65,7 +65,7 @@ public class LangTest {
 		// Perhaps the create environment command should return an environment
 		// implements Command<Environment> ?
 		// ditch Command pattern?
-		Step step = program.getSteps().get(0);
+		DispatchableStep step = program.getSteps().get(0);
 		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
 		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
 		assertTrue(toRun.toString().contains("hostname=development1"));
@@ -85,7 +85,7 @@ public class LangTest {
 		String sentence = ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		
-		Step step = program.getSteps().get(0);
+		DispatchableStep step = program.getSteps().get(0);
 		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
 		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
 		assertTrue(toRun.toString().contains("hostname=developmentwebdb1"));
@@ -98,7 +98,7 @@ public class LangTest {
 		String sentence = puppet + ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		
-		Step step = program.getSteps().get(0);
+		DispatchableStep step = program.getSteps().get(0);
 		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
 		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
 		String programOut = toRun.toString();
@@ -112,7 +112,7 @@ public class LangTest {
 		String sentence = jsch + ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		
-		Step step = program.getSteps().get(0);
+		DispatchableStep step = program.getSteps().get(0);
 		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
 		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
 		String programOut = toRun.toString();
@@ -123,7 +123,7 @@ public class LangTest {
 	public void deploySentence() throws RecognitionException {
 		String sentence = ZOOKEEPER_SENTENCE + "Deploy latest infrastructure code from version control to the testing environment";
 		Program program = Program.factory(sentence);
-		Step step = program.getSteps().get(0);
+		DispatchableStep step = program.getSteps().get(0);
 		Executable toRun = step.getCommand();
 	}
 

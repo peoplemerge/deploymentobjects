@@ -10,7 +10,7 @@ import org.deploymentobjects.core.DeploymentObjectsParser;
 import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
 import org.deploymentobjects.core.domain.model.execution.Program;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 import org.junit.Test;
 
 
@@ -25,7 +25,7 @@ public class ScriptedStatementTest {
 		DeploymentObjectsParser parser = new DeploymentObjectsParser(tokenStream);
 		Program program = parser.program().program;
 		
-		Step step = program.getSteps().get(0);
+		DispatchableStep step = program.getSteps().get(0);
 		Assert.assertTrue(step.getCommand() instanceof ScriptedCommand);
 		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();	
 		ExitCode returned = toRun.execute();

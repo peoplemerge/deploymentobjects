@@ -7,7 +7,7 @@ import org.deploymentobjects.core.application.DeployApplicationCommand;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperEnvironmentRepository;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence;
@@ -42,7 +42,7 @@ public class DeployJenkinsIntegrationTest {
 						new JschDispatch("root")).build();
 		ExitCode exit = cmd.execute();
 		assertEquals(ExitCode.SUCCESS, exit);
-		for (Step step : cmd.getSteps()) {
+		for (DispatchableStep step : cmd.getSteps()) {
 			for (Host node : step.getHosts()) {
 				testSiteUp(node.getHostname());
 			}

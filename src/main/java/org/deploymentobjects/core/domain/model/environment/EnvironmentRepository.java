@@ -13,6 +13,7 @@ public interface EnvironmentRepository extends HostWatcher.HostAppears{
 	
 	public List<Environment> getAll();
 	
+	//TODO Refactor to BlockStep
 	public void blockUntilProvisioned(Environment env) throws InterruptedException;
 	
 }

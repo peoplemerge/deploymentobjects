@@ -1,17 +1,17 @@
 package org.deploymentobjects.core.domain.shared;
 
-/**
- * A domain event is something that is unique, but does not have a lifecycle.
- * The identity may be explicit, for example the sequence number of a payment,
- * or it could be derived from various aspects of the event such as where, when and what
- * has happened.
- */
-public interface DomainEvent<T> {
+import java.util.Date;
 
-  /**
-   * @param other The other domain event.
-   * @return <code>true</code> if the given domain event and this event are regarded as being the same event.
-   */
-  boolean sameEventAs(T other);
+public abstract class DomainEvent<K extends DomainEvent<?>> extends TypedEvent {
+	public abstract boolean sameEventAs(K other);
 
+	public final Date occurred;
+
+	public static interface EventType {
+	};
+
+	public DomainEvent() {
+		this.occurred = new Date();
+
+	}
 }

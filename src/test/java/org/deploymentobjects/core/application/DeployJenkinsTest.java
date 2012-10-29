@@ -1,28 +1,19 @@
 package org.deploymentobjects.core.application;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-
-import java.io.File;
-import java.net.URL;
-
-import org.apache.commons.io.FileUtils;
-import org.deploymentobjects.core.application.DeployApplicationCommand;
-import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.environment.Role;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
-import org.deploymentobjects.core.domain.model.execution.Step;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
+
 
 
 public class DeployJenkinsTest {
@@ -44,7 +35,7 @@ public class DeployJenkinsTest {
 				"jenkins", "jenkins1env",repo)
 				.addCommandOnNodesByRole(commands, "standard").withDispatch(
 						dispatch).build();
-		Step step = new Step(new ScriptedCommand(commands), role);
+		DispatchableStep step = new DispatchableStep(new ScriptedCommand(commands), role);
 		when(dispatch.dispatch(eq(step))).thenReturn(ExitCode.SUCCESS);
 		ExitCode exit = cmd.execute();
 		assertEquals(ExitCode.SUCCESS, exit);

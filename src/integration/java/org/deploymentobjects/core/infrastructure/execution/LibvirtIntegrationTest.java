@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.ControlsHosts;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
 import org.deploymentobjects.core.infrastructure.execution.LibvirtAdapter;
 import org.junit.Assert;
@@ -29,9 +29,9 @@ public class LibvirtIntegrationTest {
 		}
 	};
 
-	private Step executeRemote(String commandStr) {
+	private DispatchableStep executeRemote(String commandStr) {
 		ScriptedCommand command = new ScriptedCommand(commandStr);
-		Step step = new Step(command, node);
+		DispatchableStep step = new DispatchableStep(command, node);
 		try {
 			jsch.dispatch(step);
 		} catch (Exception e) {
@@ -92,7 +92,7 @@ public class LibvirtIntegrationTest {
 	@Test
 	public void startStop() throws Exception {
 		String commandStr = "/usr/bin/virsh list";
-		Step step; 
+		DispatchableStep step; 
 		step = executeRemote(commandStr);
 		Assert.assertTrue(!step.getOutput().contains(vm));
 		ControlsHosts lv = new LibvirtAdapter(

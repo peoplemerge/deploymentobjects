@@ -31,20 +31,22 @@ import java.util.List;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 import org.deploymentobjects.core.domain.model.execution.Executable;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
-import org.deploymentobjects.core.domain.model.execution.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeployApplicationCommand implements Executable {
 
+public class DeployApplicationCommand extends Executable {
+
+	
 	private Dispatchable dispatch;
 	private String appName;
 	private EnvironmentRepository environmentRepository;
 	private Environment environment;
-	private List<Step> steps = new LinkedList<Step>();
-	public List<Step> getSteps() {
+	private List<DispatchableStep> steps = new LinkedList<DispatchableStep>();
+	public List<DispatchableStep> getSteps() {
 		return steps;
 	}
 
@@ -81,7 +83,7 @@ public class DeployApplicationCommand implements Executable {
 					.lookupByName(environmentName);
 			for (Tuple tuple : commandsToNodes) {
 				Executable cmd = new ScriptedCommand(tuple.commands);
-				Step step = new Step(cmd, command.environment
+				DispatchableStep step = new DispatchableStep(cmd, command.environment
 						.lookupRoleByName(tuple.role));
 				command.steps.add(step);
 			}
@@ -98,12 +100,17 @@ public class DeployApplicationCommand implements Executable {
 			command.dispatch = dispatch;
 			return this;
 		}
+		
+		public Builder withData(/**/){
+			//command.data = not new NoData();
+			return this;
+		}
 
 	}
 
 	@Override
 	public ExitCode execute() {
-		for (Step step : steps) {
+		for (DispatchableStep step : steps) {
 			try {
 				logger.info("Dispatch " + step);
 				ExitCode exitcode = dispatch.dispatch(step);

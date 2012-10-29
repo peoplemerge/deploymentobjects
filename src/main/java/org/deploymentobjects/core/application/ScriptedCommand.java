@@ -29,8 +29,9 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.deploymentobjects.core.domain.model.execution.Executable;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
+import org.deploymentobjects.core.domain.model.execution.Script;
 
-public class ScriptedCommand implements Executable {
+public class ScriptedCommand extends Executable {
 
 	@Override
 	public ExitCode execute() {
@@ -38,18 +39,18 @@ public class ScriptedCommand implements Executable {
 		return ExitCode.FAILURE;
 	}
 	
-	private String body;
+	private Script body;
 
 	public ScriptedCommand(String body){
-		this.body = body;
+		this.body = new Script(body);
 	}
 
-	public String getBody() {
+	public Script getBody() {
 		return body;
 	}
 	
 	public String toString(){
-		return body;
+		return body.toString();
 	}
 
 	@Override
@@ -65,12 +66,12 @@ public class ScriptedCommand implements Executable {
 		}
 		ScriptedCommand rhs = (ScriptedCommand) obj;
 		// TODO invesigate why it fails when .appendSuper(super.equals(obj))
-		return new EqualsBuilder().append(body, rhs.body).isEquals();
+		return new EqualsBuilder().append(body.toString(), rhs.body.toString()).isEquals();
 	}
 
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(74543, 9984405).append(body).toHashCode();
+		return new HashCodeBuilder(74543, 9984405).append(body.toString()).toHashCode();
 	}
 
 }

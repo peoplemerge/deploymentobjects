@@ -15,7 +15,7 @@ import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.Executable;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 
 public class Puppet implements ConfigurationManagement {
 
@@ -49,15 +49,15 @@ public class Puppet implements ConfigurationManagement {
 				+ "repo --name=\"puppetlabs-deps\"  --baseurl=http://yum.puppetlabs.com/el/6/dependencies/i386 --cost=100";
 	}
 
-	public Step postCompleteStep(Host node) {
+	public DispatchableStep postCompleteStep(Host node) {
 		String body = "puppet cert sign " + node.getHostname() + "."
 				+ node.getDomainname();
 		Executable postComplete = new ScriptedCommand(body);
-		return new Step(postComplete, puppetmaster);
+		return new DispatchableStep(postComplete, puppetmaster);
 	}
 
 	// TODO write test
-	public Step newEnvironment(EnvironmentRepository repo) {
+	public DispatchableStep newEnvironment(EnvironmentRepository repo) {
 		List<Environment> envs = repo.getAll();
 
 		File sitePpFile = new File("/mnt/media/software/puppet/site.pp");
@@ -81,7 +81,7 @@ public class Puppet implements ConfigurationManagement {
 		String body = "cp /mnt/media/software/puppet/site.pp /etc/puppet/manifests && "
 				+ "cp /mnt/media/software/puppet/hosts.pp /etc/puppet/manifests";
 		Executable newEnv = new ScriptedCommand(body);
-		return new Step(newEnv, puppetmaster);
+		return new DispatchableStep(newEnv, puppetmaster);
 	}
 
 	String getHostsPp(List<Environment> envs) {
@@ -105,13 +105,13 @@ public class Puppet implements ConfigurationManagement {
 	}
 
 	@Override
-	public Step nodeProvisioned(Host node) {
+	public DispatchableStep nodeProvisioned(Host node) {
 		String body = "puppet agent --test\n"
 				+ "if [[ $? -eq 2 ]]; then exit 0;\n"
 				+ "fi\n" 
 				+ "exit 1\n";
 		Executable newEnv = new ScriptedCommand(body);
-		return new Step(newEnv, node);
+		return new DispatchableStep(newEnv, node);
 	}
 
 }

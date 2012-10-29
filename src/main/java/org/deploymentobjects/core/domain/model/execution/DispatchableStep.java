@@ -25,42 +25,53 @@
  ************************************************************************/
 package org.deploymentobjects.core.domain.model.execution;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.deploymentobjects.core.domain.model.environment.Host;
+import org.deploymentobjects.core.domain.model.execution.DispatchEvent.Completed;
+import org.deploymentobjects.core.domain.model.execution.DispatchEvent.Requested;
+import org.deploymentobjects.core.domain.shared.EventStore;
 
-public class Step implements Executable {
 
-	private Executable command;
-	private AcceptsCommands target;
-	private String output;
 
-	public String getOutput() {
-		return output;
-	}
+public class DispatchableStep extends Executable {
 
-	public void setOutput(String output) {
-		this.output = output;
-	}
+	protected Dispatchable dispatchable;
+	protected AcceptsCommands target;
+	protected Script command;
+	protected EventStore eventStore;
 
-	public Step(Executable command, AcceptsCommands target) {
+	public DispatchableStep(Script command, AcceptsCommands target, Dispatchable dispatchable, EventStore eventStore) {
+		this.dispatchable = dispatchable;
 		this.command = command;
 		this.target = target;
+		this.eventStore = eventStore;
 	}
 
-	public Executable getCommand() {
-		return command;
+
+	@Override
+	public ExitCode execute() {
+		try {
+			// TODO post to handler
+			Requested requested = new Requested(new Date(), dispatchable, command, target);
+			Completed completed = dispatchable.dispatch(requested);
+			if(completed.isSuccessful()){
+				return ExitCode.SUCCESS;
+			} else {
+				return ExitCode.FAILURE;
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return ExitCode.FAILURE;
+		}
 	}
 
 	public List<Host> getHosts() {
 		return target.getHosts();
-	}
-
-	@Override
-	public ExitCode execute() {
-		return command.execute();
 	}
 
 	public String toString() {
@@ -82,7 +93,7 @@ public class Step implements Executable {
 		if (obj.getClass() != getClass()) {
 			return false;
 		}
-		Step rhs = (Step) obj;
+		DispatchableStep rhs = (DispatchableStep) obj;
 		// TODO invesigate why it fails when .appendSuper(super.equals(obj))
 		EqualsBuilder builder = new EqualsBuilder()
 				.append(command, rhs.command).append(target, rhs.target);
