@@ -25,7 +25,6 @@
 ************************************************************************/
 package org.deploymentobjects.core.infrastructure.persistence;
 
-import java.io.IOException;
 
 public interface Persistence {
 

@@ -25,12 +25,15 @@
 ************************************************************************/
 package org.deploymentobjects.core.domain.model.execution;
 
+
+
 public class MCollectiveDispatch implements Dispatchable {
 
 	@Override
-	public ExitCode dispatch(Step step) {
+	public void dispatch(DispatchEvent event) {
 		// TODO Auto-generated method stub
-		return null;
+		
 	}
+
 	
 }

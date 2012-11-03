@@ -3,6 +3,9 @@ package org.deploymentobjects.core.domain.model.environment;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.deploymentobjects.core.domain.model.execution.Executable;
+import org.deploymentobjects.core.domain.model.execution.Script;
+
 
 /**
  * NoEnvironmentRepository
@@ -12,11 +15,6 @@ import java.util.List;
  */
 public class NoEnvironmentRepository implements EnvironmentRepository {
 
-	@Override
-	public void blockUntilProvisioned(Environment env)
-			throws InterruptedException {
-
-	}
 
 	@Override
 	public List<Environment> getAll() {
@@ -36,6 +34,12 @@ public class NoEnvironmentRepository implements EnvironmentRepository {
 	@Override
 	public void nodeAppears(Host appeared) {
 
+	}
+
+	@Override
+	public Executable buildStepToBlockUntilProvisioned(Environment env) {
+		// TODO Auto-generated method stub
+		return new Script("touch /dev/null");
 	}
 
 }

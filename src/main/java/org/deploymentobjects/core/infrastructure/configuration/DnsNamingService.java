@@ -27,14 +27,18 @@ package org.deploymentobjects.core.infrastructure.configuration;
 
 import org.deploymentobjects.core.domain.model.configuration.NamingService;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
+import org.deploymentobjects.core.domain.model.execution.Executable;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
 
 public class DnsNamingService implements NamingService {
 
 
+
 	@Override
-	public void update(EnvironmentRepository repo) {
+	public Executable buildStepToUpdate(EventPublisher publisher,
+			EnvironmentRepository repo) {
 		// TODO Auto-generated method stub
-		
+		return null;
 	}
 
 }

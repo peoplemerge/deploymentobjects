@@ -1,6 +1,8 @@
 package org.deploymentobjects.core.infrastructure.persistence.zookeeper;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 
@@ -9,9 +11,7 @@ import junit.framework.Assert;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.data.Stat;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
-import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 

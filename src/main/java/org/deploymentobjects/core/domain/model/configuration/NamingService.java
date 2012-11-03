@@ -26,11 +26,13 @@
 package org.deploymentobjects.core.domain.model.configuration;
 
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
+import org.deploymentobjects.core.domain.model.execution.Executable;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
 
 //ResolvableByName?
 
 public interface NamingService {
 
-	void update(EnvironmentRepository repo);
+	Executable buildStepToUpdate(EventPublisher publisher, EnvironmentRepository repo);
 
 }

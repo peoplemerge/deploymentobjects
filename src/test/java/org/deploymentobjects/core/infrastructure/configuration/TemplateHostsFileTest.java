@@ -13,7 +13,9 @@ import org.apache.commons.io.FileUtils;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.environment.Host;
-import org.deploymentobjects.core.infrastructure.configuration.TemplateHostsFile;
+import org.deploymentobjects.core.domain.model.execution.Executable;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
+import org.deploymentobjects.core.domain.shared.EventStore;
 import org.deploymentobjects.core.infrastructure.persistence.Persistence;
 import org.deploymentobjects.core.infrastructure.persistence.YamlPersistence;
 import org.junit.Ignore;
@@ -37,6 +39,10 @@ public class TemplateHostsFileTest {
 		Assert.assertEquals("192.168.0.2 testhost1\n", contents);
 	}
 	*/
+	
+	private EventStore store = mock(EventStore.class);
+	private EventPublisher publisher = new EventPublisher(store);
+
 
 	@Test
 	public void createHostsUsingAllEnvironmentsInRepository() throws Exception{
@@ -55,7 +61,8 @@ public class TemplateHostsFileTest {
 		
 		when(repo.getAll()).thenReturn(environments);
 
-		hostsFile.update(repo);
+		Executable step = hostsFile.buildStepToUpdate(publisher, repo);
+		step.execute();
 		//Write HostsFileTest?
 		String contents = FileUtils.readFileToString(actual);
 		Assert.assertEquals("192.168.0.10 env1host1\n192.168.0.11 env1host2\n192.168.0.20 env2host1\n", contents);		

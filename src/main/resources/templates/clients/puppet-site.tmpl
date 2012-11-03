@@ -5,7 +5,7 @@ node 'puppetmaster1.peoplemerge.com' {
 	include standard
 }
 #foreach( $environment in $allenvironments )
-#foreach( $host in $environment.getNodes() )
+#foreach( $host in $environment.getHosts() )
 node '$host.getHostname().$host.getDomainname()' {
 #foreach( $role in $host.getRoles() )
 	include $role.getName()

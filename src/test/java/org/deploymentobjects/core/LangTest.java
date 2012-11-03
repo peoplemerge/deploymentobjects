@@ -24,14 +24,15 @@ package org.deploymentobjects.core;
 ** conditions contained in a signed written agreement between you and the 
 ** copyright owner.
 ************************************************************************/
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 import org.antlr.runtime.RecognitionException;
 import org.deploymentobjects.core.application.CreateEnvironmentCommand;
+import org.deploymentobjects.core.application.DeployApplicationCommand;
 import org.deploymentobjects.core.application.ScriptedCommand;
-import org.deploymentobjects.core.domain.model.execution.Executable;
+import org.deploymentobjects.core.domain.model.execution.CreatesJob;
 import org.deploymentobjects.core.domain.model.execution.Program;
-import org.deploymentobjects.core.domain.model.execution.Step;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -46,11 +47,12 @@ public class LangTest {
 			+ "EOF\n";
 		Program program = Program.factory(sentence);
 		
-		Step step = program.getSteps().get(0);
-		assertTrue(step.getCommand() instanceof ScriptedCommand);
-		ScriptedCommand toRun = (ScriptedCommand) step.getCommand();	
+		CreatesJob step = program.getSteps().get(0);
+		assertTrue(step instanceof ScriptedCommand);
+		ScriptedCommand command = (ScriptedCommand) step;
+		ScriptedCommand toRun = (ScriptedCommand) step;	
 		assertEquals("ls",toRun.getBody());
-		assertEquals("localhost",step.getHosts().get(0).getHostname());
+		//assertEquals("localhost",step.getHosts().get(0).getHostname());
 		assertEquals("on Node[hostname=localhost,domainname=<null>,ip=<null>,type=<null>,provisioned=<null>] run ls", program.display());
 	}
 	
@@ -65,9 +67,9 @@ public class LangTest {
 		// Perhaps the create environment command should return an environment
 		// implements Command<Environment> ?
 		// ditch Command pattern?
-		Step step = program.getSteps().get(0);
-		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
-		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
+		CreatesJob step = program.getSteps().get(0);
+		assertTrue(step instanceof CreateEnvironmentCommand);
+		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step;
 		assertTrue(toRun.toString().contains("hostname=development1"));
 		assertTrue(toRun.toString().contains("environmentName=development"));
 		
@@ -85,9 +87,9 @@ public class LangTest {
 		String sentence = ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		
-		Step step = program.getSteps().get(0);
-		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
-		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
+		CreatesJob step = program.getSteps().get(0);
+		assertTrue(step instanceof CreateEnvironmentCommand);
+		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step;
 		assertTrue(toRun.toString().contains("hostname=developmentwebdb1"));
 		assertTrue(toRun.toString().contains("role=web,role=db"));
 
@@ -98,9 +100,9 @@ public class LangTest {
 		String sentence = puppet + ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		
-		Step step = program.getSteps().get(0);
-		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
-		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
+		CreatesJob step = program.getSteps().get(0);
+		assertTrue(step instanceof CreateEnvironmentCommand);
+		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step;
 		String programOut = toRun.toString();
 		assertTrue(programOut.contains("Puppet"));
 		
@@ -112,9 +114,9 @@ public class LangTest {
 		String sentence = jsch + ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		
-		Step step = program.getSteps().get(0);
-		assertTrue(step.getCommand() instanceof CreateEnvironmentCommand);
-		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step.getCommand();
+		CreatesJob step = program.getSteps().get(0);
+		assertTrue(step instanceof CreateEnvironmentCommand);
+		CreateEnvironmentCommand toRun = (CreateEnvironmentCommand) step;
 		String programOut = toRun.toString();
 		assertTrue(programOut.contains("root"));
 		
@@ -123,8 +125,8 @@ public class LangTest {
 	public void deploySentence() throws RecognitionException {
 		String sentence = ZOOKEEPER_SENTENCE + "Deploy latest infrastructure code from version control to the testing environment";
 		Program program = Program.factory(sentence);
-		Step step = program.getSteps().get(0);
-		Executable toRun = step.getCommand();
+		CreatesJob step = program.getSteps().get(0);
+		assertTrue(step instanceof DeployApplicationCommand);
 	}
 
 	

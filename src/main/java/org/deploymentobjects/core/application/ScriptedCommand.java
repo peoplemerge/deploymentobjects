@@ -27,29 +27,32 @@ package org.deploymentobjects.core.application;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.deploymentobjects.core.domain.model.execution.Executable;
-import org.deploymentobjects.core.domain.model.execution.ExitCode;
+import org.deploymentobjects.core.domain.model.environment.Host;
+import org.deploymentobjects.core.domain.model.execution.CreatesJob;
+import org.deploymentobjects.core.domain.model.execution.Dispatchable;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
+import org.deploymentobjects.core.domain.model.execution.Job;
+import org.deploymentobjects.core.domain.model.execution.Script;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
 
-public class ScriptedCommand implements Executable {
+public class ScriptedCommand implements CreatesJob {
 
-	@Override
-	public ExitCode execute() {
-		// TODO
-		return ExitCode.FAILURE;
+	private Script body;
+	private EventPublisher publisher;
+	private DispatchableStep step;
+
+	public ScriptedCommand(EventPublisher publisher, String body, Host target, Dispatchable dispatch){
+		Script command = new Script(body);
+		this.step = DispatchableStep.factory(publisher, command, target, dispatch);
+
 	}
-	
-	private String body;
 
-	public ScriptedCommand(String body){
-		this.body = body;
-	}
-
-	public String getBody() {
+	public Script getBody() {
 		return body;
 	}
 	
 	public String toString(){
-		return body;
+		return body.toString();
 	}
 
 	@Override
@@ -65,12 +68,18 @@ public class ScriptedCommand implements Executable {
 		}
 		ScriptedCommand rhs = (ScriptedCommand) obj;
 		// TODO invesigate why it fails when .appendSuper(super.equals(obj))
-		return new EqualsBuilder().append(body, rhs.body).isEquals();
+		return new EqualsBuilder().append(body.toString(), rhs.body.toString()).isEquals();
 	}
 
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(74543, 9984405).append(body).toHashCode();
+		return new HashCodeBuilder(74543, 9984405).append(body.toString()).toHashCode();
+	}
+
+	@Override
+	public Job create() {
+		Job job = new Job(publisher, step);
+		return job;
 	}
 
 }

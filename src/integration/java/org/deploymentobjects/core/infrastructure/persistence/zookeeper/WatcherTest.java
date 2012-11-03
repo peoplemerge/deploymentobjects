@@ -1,11 +1,11 @@
 package org.deploymentobjects.core.infrastructure.persistence.zookeeper;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
-import org.deploymentobjects.core.infrastructure.persistence.zookeeper.HostWatcher;
-import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence;
 import org.junit.Test;
 
 public class WatcherTest {

@@ -25,13 +25,12 @@
  ************************************************************************/
 package org.deploymentobjects.core.domain.model.environment;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.deploymentobjects.core.domain.model.environment.provisioning.ProvisioningEvent;
+import org.deploymentobjects.core.domain.shared.DomainEvent;
 /**
  * Aggregate root
  * @author dave
@@ -41,7 +40,7 @@ public class Environment {
 
 	private String name;
 
-	private List<ProvisioningEvent> changes;
+	private List<DomainEvent<?>> changes;
 
 	public Environment(String name) {
 		this.name = name;
@@ -60,6 +59,11 @@ public class Environment {
 		return null;
 	}
 
+	//TODO delete me
+	public void add(Host host){
+		addHost(host);
+	}
+	
 	public void addHost(Host node) {
 		hosts.add(node);
 	}
@@ -92,6 +96,10 @@ public class Environment {
 			}
 		}
 		return null;
+	}
+	
+	public void apply(DomainEvent<?> event){
+		
 	}
 
 	@Override

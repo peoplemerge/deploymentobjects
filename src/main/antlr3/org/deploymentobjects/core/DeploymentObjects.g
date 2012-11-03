@@ -38,7 +38,9 @@ options{
 	import org.deploymentobjects.core.application.*;
 	import org.deploymentobjects.core.domain.model.execution.*;
 	import org.deploymentobjects.core.domain.model.environment.*;
+	import org.deploymentobjects.core.domain.model.environment.provisioning.*;
 	import org.deploymentobjects.core.domain.model.configuration.*;
+	import org.deploymentobjects.core.domain.shared.*;
 	import org.deploymentobjects.core.infrastructure.persistence.*;
 	import org.deploymentobjects.core.infrastructure.persistence.zookeeper.*;
 	import org.deploymentobjects.core.infrastructure.configuration.*;
@@ -55,6 +57,8 @@ options{
 	private ControlsHosts controlsHosts;
 	private Persistence persistence;
 	private Template template;
+	private EventStore eventStore;
+	private EventPublisher publisher;
 
 	public ConfigurationManagement getConfigurationManagement() {
 		if (configurationManagement == null) {
@@ -63,13 +67,21 @@ options{
 		return configurationManagement;
 	}
 
+	public EventPublisher getPublisher(){
+		if(publisher == null){
+			EventStore eventStore = new InMemoryEventStore();
+			this.publisher = new EventPublisher(eventStore);
+		}
+		return publisher;
+	}
+
 	public EnvironmentRepository getEnvironmentRepository() {
 		if (persistence != null && environmentRepository == null) {
 			if (persistence instanceof ZookeeperPersistence) {
 				// Yes, this violates OCP, but this is an assembler and probably
 				// appropriate in this case
 				environmentRepository = new ZookeeperEnvironmentRepository(
-						(ZookeeperPersistence) persistence);
+						(ZookeeperPersistence) persistence, getPublisher());
 			}
 		}
 		if (environmentRepository == null) {
@@ -77,6 +89,19 @@ options{
 		}
 		return environmentRepository;
 	}
+	
+	
+	public EventStore getEventStore() {
+		if (persistence != null && eventStore == null) {
+			if (persistence instanceof ZookeeperPersistence) {
+				//TODO zookeeper event store
+			}
+			eventStore = new InMemoryEventStore();
+		}
+		
+		return eventStore;
+	}
+	
 	private Program program;
 }
 
@@ -125,14 +150,14 @@ ZOOKEEPER_CONNECTION_STRING : ( ID ':' INT_CONST )(COMMA ID ':' INT_CONST )*;
 
 
 // TODO allow better here docs like so http://www.antlr.org/pipermail/antlr-interest/2005-September/013673.html
-scripted_statement returns [Executable command, Host node] : 'On' + 
-	 	'host' ID {}
+scripted_statement returns [ScriptedCommand command] : 'On' + 
+	 	'host' ID 
 //	|   'role' ID 
 //	|   'environment' ID 
 	'run:' '<<EOF'
  	body=.* {
- 		$command = new ScriptedCommand($body.text);
- 		$node = new Host($ID.text);
+ 		$command = new ScriptedCommand(getPublisher(), $body.text, new Host($ID.text), dispatchable);
+ 		
  	} 
  	'EOF';
 
@@ -151,10 +176,10 @@ node_param returns [Integer qty, Host.Type type, HostPool pool, List<Role> roles
 	;
 
 
-create_statement returns [Executable command, Host node]:
+create_statement returns [CreateEnvironmentCommand command]:
 'Create a new environment called' ID 
 	{
-		CreateEnvironmentCommand.Builder builder = new CreateEnvironmentCommand.Builder($ID.text, getEnvironmentRepository());
+		CreateEnvironmentCommand.Builder builder = new CreateEnvironmentCommand.Builder($ID.text, getEnvironmentRepository(), getPublisher());
 		builder.withDispatch(dispatchable);
 		builder.withConfigurationManagement(getConfigurationManagement());
 	}
@@ -178,7 +203,7 @@ code_repository : 'version control' | 'the maven repository' | 'the filesystem' 
 //dispatch_method : (FABRIC | MCOLLECTIVE | PURE_JAVA) 'dispatch';
 dispatch_method : JSCH 'dispatch as user' ID 
 {
-	dispatchable = new JschDispatch($ID.text);
+	dispatchable = new JschDispatch(getPublisher(), $ID.text);
 }
 ;
 
@@ -189,7 +214,7 @@ dispatch_method : JSCH 'dispatch as user' ID
 //TODO consider storing global config information in zookeeper or whatever persistence
 configuration_management_method : PUPPET 'with puppetmaster on' hostname=ID domainname=ID ipaddress=ID
 {
-	configurationManagement = new Puppet(new Host($hostname.text, $domainname.text, $ipaddress.text));
+	configurationManagement = new Puppet(getPublisher(), new Host($hostname.text, $domainname.text, $ipaddress.text),dispatchable);
 };
 
 persistence_statement : 'Persist with' 
@@ -205,11 +230,11 @@ persistence_statement : 'Persist with'
 
 use_statement : 'Use' (dispatch_method | configuration_management_method);
 
-deploy_statement returns [Executable command, Host node]:
+deploy_statement returns [DeployApplicationCommand command]:
 	'Deploy' version_param module_type
 	'code from' code_repository
 	'to the' ID 'environment'
-	{$command = new DeployApplicationCommand.Builder("text", $ID.text, new NoEnvironmentRepository()).build();}
+	{$command = new DeployApplicationCommand.Builder(getPublisher(), "text", $ID.text, new NoEnvironmentRepository(), dispatchable).build();}
 ;
 
 // Do I need to know about packages, dependencies, distributions?
@@ -236,9 +261,9 @@ program returns [Program program]:
 	use_statement*
 	persistence_statement
 	(
-		//scripted_statement {$program.addStep($scripted_statement.command, $scripted_statement.node);} | 
-		create_statement {$program.addStep($create_statement.command, new Host(""));} | 
-		deploy_statement {$program.addStep($deploy_statement.command, new Host(""));}
+//		scripted_statement {$program.addStep($scripted_statement.command);} | 
+		create_statement {$program.addStep($create_statement.command);} | 
+		deploy_statement {$program.addStep($deploy_statement.command);}
 	)*
 	(emit_statement | execute_statement)*
 	;

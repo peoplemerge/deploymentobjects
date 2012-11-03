@@ -29,8 +29,6 @@ import java.io.File;
 import junit.framework.Assert;
 
 import org.apache.commons.io.FileUtils;
-import org.deploymentobjects.core.infrastructure.persistence.Composite;
-import org.deploymentobjects.core.infrastructure.persistence.YamlPersistence;
 import org.junit.Test;
 
 

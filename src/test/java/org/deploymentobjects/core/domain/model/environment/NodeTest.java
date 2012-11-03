@@ -2,8 +2,6 @@ package org.deploymentobjects.core.domain.model.environment;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import org.deploymentobjects.core.domain.model.environment.Host;
-import org.deploymentobjects.core.domain.model.environment.Role;
 import org.junit.Test;
 
 

@@ -1,9 +1,8 @@
 package org.deploymentobjects.core.domain.model.configuration;
 
-import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.environment.Host;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 
 public class NoConfigurationManagement implements ConfigurationManagement {
 
@@ -22,17 +21,17 @@ public class NoConfigurationManagement implements ConfigurationManagement {
 		return "";
 	}
 
-	public Step postCompleteStep(Host node) {
-		return new Step(new ScriptedCommand("/bin/ls"), new Host("localhost"));
+	public DispatchableStep postCompleteStep(Host node) {
+		return null;
 	}
 
-	public Step newEnvironment(EnvironmentRepository repo) {
-		return new Step(new ScriptedCommand("/bin/ls"), new Host("localhost"));
+	public DispatchableStep newEnvironment(EnvironmentRepository repo) {
+		return null;
 	}
 
 	@Override
-	public Step nodeProvisioned(Host node) {
-		return new Step(new ScriptedCommand("/bin/ls"), new Host("localhost"));
+	public DispatchableStep nodeProvisioned(Host node) {
+		return null;
 	}
 
 }

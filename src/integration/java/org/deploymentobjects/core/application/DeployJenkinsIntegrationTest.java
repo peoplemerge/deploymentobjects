@@ -3,12 +3,16 @@ package org.deploymentobjects.core.application;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.deploymentobjects.core.application.DeployApplicationCommand;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.environment.Host;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
+import org.deploymentobjects.core.domain.model.execution.Executable;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.model.execution.Job;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
+import org.deploymentobjects.core.domain.shared.EventStore;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
+import org.deploymentobjects.core.infrastructure.persistence.InMemoryEventStore;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperEnvironmentRepository;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence;
 import org.junit.Test;
@@ -33,16 +37,20 @@ public class DeployJenkinsIntegrationTest {
 	@Test
 	public void testDeployJenkins() throws Exception {
 
-		EnvironmentRepository repo = new ZookeeperEnvironmentRepository(
-				new ZookeeperPersistence("ino:2181"));
 
-		DeployApplicationCommand cmd = new DeployApplicationCommand.Builder(
-				"jenkins", "rfctr1", repo)
-				.addCommandOnNodesByRole(commands, "web").withDispatch(
-						new JschDispatch("root")).build();
-		ExitCode exit = cmd.execute();
+		EventStore eventStore = new InMemoryEventStore();
+		EventPublisher publisher = new EventPublisher(eventStore);
+		EnvironmentRepository repo = new ZookeeperEnvironmentRepository(
+				new ZookeeperPersistence("ino:2181"), publisher);
+		
+		DeployApplicationCommand cmd = new DeployApplicationCommand.Builder(publisher, 
+				"jenkins", "rfctr1", repo, new JschDispatch(publisher, "root"))
+				.addCommandOnNodesByRole(commands, "web").build();
+		Job job = cmd.create();
+		ExitCode exit = job.execute();
 		assertEquals(ExitCode.SUCCESS, exit);
-		for (Step step : cmd.getSteps()) {
+		for (Executable exec : cmd.getSteps().getSteps()) {
+			DispatchableStep step = (DispatchableStep) exec;
 			for (Host node : step.getHosts()) {
 				testSiteUp(node.getHostname());
 			}

@@ -28,9 +28,10 @@ package org.deploymentobjects.core.infrastructure.execution;
 import java.io.InputStream;
 
 import org.deploymentobjects.core.domain.model.environment.Host;
+import org.deploymentobjects.core.domain.model.execution.DispatchEvent;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
-import org.deploymentobjects.core.domain.model.execution.ExitCode;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
+import org.deploymentobjects.core.domain.shared.DomainEvent.EventType;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -42,15 +43,25 @@ public class JschDispatch implements Dispatchable {
 	private JSch jsch = new JSch();
 	private Session session;
 	private String userName;
+	private EventPublisher publisher;
 
-	public JschDispatch(String userName) {
+	public JschDispatch(EventPublisher publisher, String userName) {
 		this.userName = userName;
+		this.publisher = publisher;
 	}
 
-	public ExitCode dispatch(Step step) throws Exception {
-		// Should use the runner, right?
-		ExitCode retval = ExitCode.SUCCESS;
-		for (Host node : step.getHosts()) {
+	public enum DispatchEventType implements EventType {
+		JSCH_DISPATCH_REQUESTED,JSCH_DISPATCH_INTERRUPTED,JSCH_DISPATCH_HOST_COMPLETED, JSCH_DISPATCH_FAILED, JSCH_DISPATCH_NONZERO_EXIT, JSCH_DISPATCH_ALL_HOSTS_COMPLETED;
+	}
+	
+	@Override
+	public void dispatch(DispatchEvent event) {
+	 String allOutput = "";
+
+		for (Host node : event.target.getHosts()) {
+			
+			try{
+			
 			session = jsch.getSession(userName, node.getHostname());
 			jsch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa");
 			java.util.Properties config = new java.util.Properties();
@@ -59,9 +70,7 @@ public class JschDispatch implements Dispatchable {
 
 			session.connect();
 			Channel channel = session.openChannel("exec");
-			// TODO toString? fix this interface.
-			((ChannelExec) channel).setCommand(step.getCommand().toString());
-			// TODO how to integration test?
+			((ChannelExec) channel).setCommand(event.getContents());
 			InputStream in = channel.getInputStream();
 			
 			InputStream ext = channel.getExtInputStream();
@@ -84,32 +93,47 @@ public class JschDispatch implements Dispatchable {
 						break;
 					output += new String(tmp, 0, i);
 				}
-				// TODO This exit code should probably be returned.
+				// TODO This exit code should probably be better handled.  Think about how...
 				if (channel.isClosed()) {
 					System.out.println("exit-status: "
 							+ channel.getExitStatus());
+					
 					if (channel.getExitStatus() != 0) {
-						retval = ExitCode.FAILURE;
+						publisher.publish(DispatchEvent.fromEvent(event, 
+								DispatchEventType.JSCH_DISPATCH_NONZERO_EXIT).addOutput(output));
 					}
 					break;
 				}
 				try {
 					Thread.sleep(100);
-				} catch (Exception ee) {
+				} catch (InterruptedException ee) {
 					// TODO - think HARD what to do here
-					System.out.println(ee.toString());
+					//
+					// Will probably need access to something that lets us notify of interruption
+					// for example, return DomainEvent instead?
+//					retval.setSuccessful(false);
+	//				System.out.println(ee.toString());
+					publisher.publish(DispatchEvent.fromEvent(event, 
+							DispatchEventType.JSCH_DISPATCH_INTERRUPTED).addOutput(output));
 					break;
 				}
 			}
 			channel.disconnect();
 			session.disconnect();
-			if (step.getOutput() != null) {
-				step.setOutput(step.getOutput() + "\n" + output);
-			} else {
-				step.setOutput(output);
+			publisher.publish(DispatchEvent.fromEvent(event, 
+					DispatchEventType.JSCH_DISPATCH_HOST_COMPLETED).addOutput(output));
+			allOutput += output;
+			}catch(Exception e){
+				publisher.publish(DispatchEvent.fromEvent(event, 
+						DispatchEventType.JSCH_DISPATCH_FAILED).addOutput(e.toString()));
 			}
+			
 		}
-		return retval;
+		publisher.publish(DispatchEvent.fromEvent(event, 
+				DispatchEventType.JSCH_DISPATCH_ALL_HOSTS_COMPLETED).addOutput(allOutput));
 	}
+
+
+
 
 }

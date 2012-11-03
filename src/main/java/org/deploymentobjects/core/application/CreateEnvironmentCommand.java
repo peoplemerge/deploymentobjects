@@ -26,7 +26,6 @@
 package org.deploymentobjects.core.application;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -39,28 +38,38 @@ import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.environment.HostPool;
 import org.deploymentobjects.core.domain.model.environment.Role;
-import org.deploymentobjects.core.domain.model.environment.provisioning.KickstartServer;
+import org.deploymentobjects.core.domain.model.environment.provisioning.KickstartTemplateService;
+import org.deploymentobjects.core.domain.model.execution.ConcurrentSteps;
+import org.deploymentobjects.core.domain.model.execution.CreatesJob;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 import org.deploymentobjects.core.domain.model.execution.Executable;
-import org.deploymentobjects.core.domain.model.execution.ExitCode;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.model.execution.Job;
+import org.deploymentobjects.core.domain.model.execution.PersistStep;
+import org.deploymentobjects.core.domain.model.execution.SequentialSteps;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
+import org.deploymentobjects.core.domain.shared.EventStore;
 import org.deploymentobjects.core.infrastructure.configuration.TemplateHostsFile;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
+import org.deploymentobjects.core.infrastructure.persistence.InMemoryEventStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreateEnvironmentCommand implements Executable {
+public class CreateEnvironmentCommand implements CreatesJob {
 
 	private List<Host> nodes = new ArrayList<Host>();
 	private String environmentName;
 	// private Persistence persistence;
 	private EnvironmentRepository repo;
 	private Dispatchable dispatchable;
-	private KickstartServer kickstartServer;
+	private KickstartTemplateService kickstartServer;
 	private NamingService namingService;
 	private Logger logger = LoggerFactory
 			.getLogger(CreateEnvironmentCommand.class);
-	public ConfigurationManagement configurationManagement;
+	private ConfigurationManagement configurationManagement;
+	private EventStore eventStore;
+	private EventPublisher publisher;
+	private Environment environment;
 
 	private CreateEnvironmentCommand() {
 	}
@@ -70,9 +79,10 @@ public class CreateEnvironmentCommand implements Executable {
 		// "Create a new environment called development using 1 small nodes from dom0."
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand();
 
-		public Builder(String environmentName, EnvironmentRepository repo) {
+		public Builder(String environmentName, EnvironmentRepository repo, EventPublisher publisher) {
 			command.environmentName = environmentName;
 			command.repo = repo;
+			command.publisher = publisher;
 		}
 
 		public Builder withNodes(int quantity, Host.Type type, HostPool pool,
@@ -94,7 +104,8 @@ public class CreateEnvironmentCommand implements Executable {
 			return this;
 		}
 
-		public Builder withKickstartServer(KickstartServer kickstartServer) {
+		public Builder withKickstartServer(
+				KickstartTemplateService kickstartServer) {
 			command.kickstartServer = kickstartServer;
 			return this;
 		}
@@ -114,21 +125,34 @@ public class CreateEnvironmentCommand implements Executable {
 			return this;
 		}
 
+		public Builder withEventStore(EventStore eventStore) {
+			command.eventStore = eventStore;
+			return this;
+		}
+
 		public CreateEnvironmentCommand build() {
 			if (command.dispatchable == null) {
-				command.dispatchable = new JschDispatch(System
+				command.dispatchable = new JschDispatch( command.publisher, System
 						.getProperty("user.name"));
 			}
 			if (command.configurationManagement == null) {
 				command.configurationManagement = new NoConfigurationManagement();
 			}
+			if (command.environment == null) {
+				command.environment = new Environment(command.environmentName);
+				command.environment.getHosts().addAll(command.nodes);
+			}
 			if (command.kickstartServer == null) {
-				command.kickstartServer = new KickstartServer(
+				command.kickstartServer = KickstartTemplateService.factory(
+						command.publisher, command.environment,
 						"/mnt/media/software/kickstart", new NfsMount(),
 						command.configurationManagement);
 			}
 			if (command.namingService == null) {
 				command.namingService = new TemplateHostsFile();
+			}
+			if (command.eventStore == null) {
+				command.eventStore = new InMemoryEventStore();
 			}
 			return command;
 		}
@@ -137,126 +161,59 @@ public class CreateEnvironmentCommand implements Executable {
 
 	private long startTime;
 
-	@Override
-	public ExitCode execute() {
-		startTime = System.currentTimeMillis();
-		for (Host node : nodes) {
-			try {
-				logger.info("Writing kickstart for " + node.getHostname());
-				kickstartServer.writeKickstartFile(node.getHostname());
-			} catch (Exception e) {
-				logger.error(e.toString());
-				return ExitCode.FAILURE;
-			}
-		}
-		List<Step> dispatched = new LinkedList<Step>();
-		for (Host node : nodes) {
-			Step step = node.getSource().createStep(node.getType(),
-					node.getHostname());
-			try {
-				logger.info("Dispatch " + step);
-				ExitCode exitcode = dispatchable.dispatch(step);
-				if (exitcode != ExitCode.SUCCESS) {
-					logger.error("Dispatch execution failed: "
-							+ step.getOutput());
-					return ExitCode.FAILURE;
-				}
-			} catch (Exception e) {
-				// TODO fail-fast behavior, alternatives would be desirable for
-				// users.
-				// Consider rollback
-				// Add finer controls than "failure"
-				logger.error("Exception dispatching " + e.toString());
-				return ExitCode.FAILURE;
-			}
-			dispatched.add(step);
-		}
-		Environment environment = new Environment(environmentName);
-		for (Host node : nodes) {
-			// TODO extract these timing variables to the grammar
-			logger.info("Polling for " + node + " to stop");
+	public Job create() {
+		
+		SequentialSteps sequence = new SequentialSteps(publisher);
+		Job job = new Job(publisher, sequence);
+		
+		PersistStep persistStep = new PersistStep(repo, publisher, environment);
+		sequence.add(persistStep);
 
-			node.getSource().pollForDomainToStop(node.getHostname(), 500,
-					600000);
-			logger.info("Restarting " + node);
-			node.getSource().startHost(node.getHostname());
+		
+		ConcurrentSteps concurrent = new ConcurrentSteps(publisher);
+		
+		
+		
+		for(Host host : environment.getHosts()){
+			// TODO refactor SSH so JSCH does this...  Dispatchable
 			
-			logger.info("Signing puppet cert for " + node);
 
-			Step step = configurationManagement.postCompleteStep(node);
-			ExitCode exitcode;
-			try {
-				exitcode = dispatchable.dispatch(step);
-			} catch (Exception e) {
-				logger.error("Exception dispatching " + e.toString());
-				return ExitCode.FAILURE;
-			}
-			if (exitcode != ExitCode.SUCCESS) {
-				logger.error("Dispatch execution failed: " + step.getOutput());
-				return ExitCode.FAILURE;
-			}
-			environment.addHost(node);
-		}
+			Executable create = host.getSource().createStep(host.getType(),host);
+			Executable block = host.getSource().buildStepForHostToStop(environment, host);
+			Executable start = host.getSource().buildStepForStartingHost(environment, host);
+			Executable hostRestarted = repo.buildStepToBlockUntilProvisioned(environment);
+			Executable configMgtStep = configurationManagement.postCompleteStep(host);
+			
+			SequentialSteps blockAndStart = new SequentialSteps(publisher);
+			
+			blockAndStart.add(create);
+			blockAndStart.add(block);
+			blockAndStart.add(start);
+			blockAndStart.add(hostRestarted);
+			blockAndStart.add(configMgtStep);
 
-		logger.info("Waiting for nodes to write to Zookeeper");
-		try {
-			repo.blockUntilProvisioned(environment);
-		} catch (InterruptedException e) {
-			logger.error(e.toString());
-			return ExitCode.FAILURE;
+			concurrent.add(blockAndStart);
+
 		}
+		sequence.add(concurrent);
+		Executable namingServiceStep = namingService.buildStepToUpdate(publisher, repo);
+		sequence.add(namingServiceStep);
+
+		DispatchableStep configStep = configurationManagement.newEnvironment(repo);
+		sequence.add(configStep);
+		ConcurrentSteps configSteps = new ConcurrentSteps(publisher);
 		
-		try {
-			logger.info("Saving " + environmentName + " to repo " + repo);
-			repo.save(environment);
-		} catch (Exception e) {
-			logger.error(e.toString());
-			return ExitCode.FAILURE;
+		for (Host host : environment.getHosts()) {
+			DispatchableStep puppetCatalogStep = configurationManagement.nodeProvisioned(host);
+			configSteps.add(puppetCatalogStep);
 		}
+		sequence.add(configSteps);
 		
-		logger.info("Updating " + namingService);
-
-		namingService.update(repo);
-
-		try {
-			logger.info("Updating " + configurationManagement);
-			Step step = configurationManagement.newEnvironment(repo);
-			ExitCode exitcode = dispatchable.dispatch(step);
-			if (exitcode != ExitCode.SUCCESS) {
-				logger.error("Dispatch execution failed: " + step.getOutput());
-				return ExitCode.FAILURE;
-			}
-
-		} catch (Exception e) {
-			logger.error(e.toString());
-			return ExitCode.FAILURE;
-		}
-
-		try {
-			for (Host node : nodes) {
-				logger.info("Using " + configurationManagement
-						+ " to complete node provisioning on " + node);
-				Step step = configurationManagement.nodeProvisioned(node);
-				ExitCode exitcode = dispatchable.dispatch(step);
-				if (exitcode != ExitCode.SUCCESS) {
-					logger.error("Dispatch execution failed: "
-							+ step.getOutput());
-					return ExitCode.FAILURE;
-				}
-			}
-
-		} catch (Exception e) {
-			logger.error(e.toString());
-			return ExitCode.FAILURE;
-		}
-
-		long duration = (System.currentTimeMillis() - startTime) / 1000;
-		logger.info("Operation completed in " + duration + "s");
-		return ExitCode.SUCCESS;
-
+		return job;
 	}
-	
-	public String toString(){
+
+
+	public String toString() {
 		return new ReflectionToStringBuilder(this).toString();
 	}
 

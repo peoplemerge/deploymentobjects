@@ -27,8 +27,6 @@ package org.deploymentobjects.core.infrastructure.configuration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -39,6 +37,9 @@ import org.deploymentobjects.core.domain.model.configuration.NamingService;
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.environment.Host;
+import org.deploymentobjects.core.domain.model.execution.Executable;
+import org.deploymentobjects.core.domain.model.execution.ExitCode;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
 
 /**
  * Called templated hosts file because it just writes a simple template. This
@@ -56,27 +57,42 @@ public class TemplateHostsFile implements NamingService {
 	private File hostsFile;
 	private String templateFile = "templates/clients/hosts.tmpl";
 
-	public void add(Environment e) {
-
-	}
-
-	public void update(EnvironmentRepository repo) {
-		String allHosts = "";
-		for (Environment env : repo.getAll()) {
-			for (Host node : env.getHosts()) {
-				allHosts += node.getIp() + " " + node.getHostname() + "\n";
+	private static class WriteTemplateStep extends Executable{
+		EventPublisher publisher;
+		EnvironmentRepository repo;
+		TemplateHostsFile parent;
+		public WriteTemplateStep(EventPublisher publisher, EnvironmentRepository repo, TemplateHostsFile parent){
+			this.publisher = publisher;
+			this.repo = repo;
+			this.parent = parent;
+		}
+		
+		@Override
+		public ExitCode execute() {
+			String allHosts = "";
+			for (Environment env : repo.getAll()) {
+				for (Host node : env.getHosts()) {
+					allHosts += node.getIp() + " " + node.getHostname() + "\n";
+				}
 			}
+			Map<String, Object> hostsString = new TreeMap<String, Object>();
+			hostsString.put("dynamichosts", allHosts);
+			String output = parent.template.encode(parent.templateFile, hostsString);
+			try {
+				FileUtils.writeStringToFile(parent.hostsFile, output);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return ExitCode.FAILURE;
+			}
+			return ExitCode.SUCCESS;
 		}
-		Map<String, Object> hostsString = new TreeMap<String, Object>();
-		hostsString.put("dynamichosts", allHosts);
-		String output = template.encode(templateFile, hostsString);
-		try {
-			FileUtils.writeStringToFile(hostsFile, output);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+		
+	}
+	
+	public Executable buildStepToUpdate(EventPublisher publisher, EnvironmentRepository repo) {
+		WriteTemplateStep step = new WriteTemplateStep(publisher, repo, this);
+		return step;
 	}
 
 	public TemplateHostsFile() {

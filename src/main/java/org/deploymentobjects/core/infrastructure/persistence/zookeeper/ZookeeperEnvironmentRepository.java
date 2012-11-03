@@ -5,29 +5,38 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.CountDownLatch;
 
 import org.deploymentobjects.core.domain.model.environment.Environment;
+import org.deploymentobjects.core.domain.model.environment.EnvironmentEvent;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.environment.Role;
+import org.deploymentobjects.core.domain.model.execution.BlockingEventStep;
+import org.deploymentobjects.core.domain.shared.DomainSubscriber;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
+import org.deploymentobjects.core.domain.shared.DomainEvent.EventType;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZookeeperEnvironmentRepository extends ZookeeperRepository implements EnvironmentRepository {
+public class ZookeeperEnvironmentRepository extends ZookeeperRepository
+		implements DomainSubscriber<EnvironmentEvent>, EnvironmentRepository {
 
 	public static final String SEPERATOR = ", ";
 	private ZookeeperPersistence persistence;
 	private Logger logger = LoggerFactory
 			.getLogger(ZookeeperEnvironmentRepository.class);
+	private EventPublisher publisher;
 
-	public ZookeeperEnvironmentRepository(ZookeeperPersistence persistence) {
+	public ZookeeperEnvironmentRepository(ZookeeperPersistence persistence,
+			EventPublisher publisher) {
 		this.persistence = persistence;
+		this.publisher = publisher;
 	}
 
 	private String environmentsStr = "environments";
 	private String hostsKey = "hosts";
+	private boolean isListening = false;
 
 	@Override
 	public List<Environment> getAll() {
@@ -59,8 +68,9 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 				String key = hostsKey + "/" + nodeWithoutRole;
 				Composite hostComposite = persistence.retrieve(key);
 				Host node = new Host(nodeWithoutRole, hostComposite.getValue());
-				Composite domainname = hostComposite.getChild(key + "/domainname");
-				if(domainname != null){
+				Composite domainname = hostComposite.getChild(key
+						+ "/domainname");
+				if (domainname != null) {
 					node.setDomainname(domainname.getValue());
 				}
 				env.addHost(node);
@@ -81,16 +91,18 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 					if (env.containsHostNamed(hostName)) {
 						Host node = env.getHostByName(hostName);
 						node.addRole(role);
-						Composite domainname = hostComposite.getChild(key + "/domainname");
-						if(domainname != null){
+						Composite domainname = hostComposite.getChild(key
+								+ "/domainname");
+						if (domainname != null) {
 							node.setDomainname(domainname.getValue());
 						}
 					} else {
 						Host node = new Host(hostName,
 								hostComposite.getValue(), role);
 						env.addHost(node);
-						Composite domainname = hostComposite.getChild(key + "/domainname");
-						if(domainname != null){
+						Composite domainname = hostComposite.getChild(key
+								+ "/domainname");
+						if (domainname != null) {
 							node.setDomainname(domainname.getValue());
 						}
 					}
@@ -146,8 +158,8 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 				}
 			}
 			if (node.getIp() != null) {
-				Composite host = new Composite(hostsKey + "/" + node.getHostname(),
-						node.getIp());
+				Composite host = new Composite(hostsKey + "/"
+						+ node.getHostname(), node.getIp());
 				try {
 					persistence.save(host);
 				} catch (Exception e) {
@@ -156,10 +168,11 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 				}
 
 			}
-			
-			if(node.getDomainname() != null){
-				Composite domainname = new Composite(hostsKey + "/" + node.getHostname() + "/domainname",
-						node.getDomainname());
+
+			if (node.getDomainname() != null) {
+				Composite domainname = new Composite(hostsKey + "/"
+						+ node.getHostname() + "/domainname", node
+						.getDomainname());
 				try {
 					persistence.save(domainname);
 				} catch (Exception e) {
@@ -172,9 +185,10 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 				+ env.getName(), hostsWithoutRole);
 		Composite roles = new Composite(environment.getKey() + "/roles", "");
 		environment.addChild(roles);
-		for(String role : rolesToHostNames.keySet()){
+		for (String role : rolesToHostNames.keySet()) {
 			String hostnamesToRole = rolesToHostNames.get(role);
-			Composite roleComposite = new Composite(roles.getKey() + "/" + role, hostnamesToRole);
+			Composite roleComposite = new Composite(
+					roles.getKey() + "/" + role, hostnamesToRole);
 			roles.addChild(roleComposite);
 		}
 		try {
@@ -185,47 +199,83 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository implemen
 		}
 	}
 
-	private Map<String, CountDownLatch> latches = new HashMap<String, CountDownLatch>();
+	 private Map<String, BlockingEventStep> latches = new HashMap<String, BlockingEventStep>();
 	private Map<String, Environment> environmentsToProvision = new HashMap<String, Environment>();
 
 	// TODO more unit tests around this logic
 	public synchronized void nodeAppears(Host appeared) {
 		// logger.debug("appeared: " + appeared);
-		for (String environmentName : environmentsToProvision.keySet()) {
-			boolean hasRemaining = false;
-			Environment environment = environmentsToProvision
-					.get(environmentName);
-			for (Host node : environment.getHosts()) {
-				if (node.getHostname().equals(appeared.getHostname())) {
-					logger.debug("provisioned: " + node);
-					node.setProvisioned();
-				} else {
-					if (!node.isProvisioned()) {
-						//logger.debug("not provisioned yet: " + node);
-						hasRemaining = true;
-					}
-				}
-			}
 
-			if (!hasRemaining) {
-				logger.debug("complete: " + environmentName);
-				CountDownLatch latch = latches.get(environmentName);
-				environmentsToProvision.remove(environmentName);
-				latches.remove(environmentName);
-				latch.countDown();
-				return;
+		for (Environment environment : environmentsToProvision.values()) {
+			if (environment.containsHostNamed(appeared.getHostname())) {
+				EnvironmentEvent waitingFor = new EnvironmentEvent.Builder(
+						ZookeeperEnvironmentEventType.HOST_APPEARED,
+						environment).withHost(appeared).build();
+				if(!isListening){
+					//TODO consider putting this block in the constructor or factory
+					publisher.addSubscriber(this, waitingFor);
+					isListening = true;
+				}
+				publisher.publish(waitingFor);
 			}
 		}
+
+	}
+
+	public enum ZookeeperEnvironmentEventType implements EventType {
+		BLOCK_UNTIL_ENVIRONMENT_PROVISIONED, HOST_APPEARED, ALL_HOSTS_APPEARED;
 	}
 
 	@Override
-	public void blockUntilProvisioned(Environment env)
-			throws InterruptedException {
-		CountDownLatch latch = new CountDownLatch(1);
-		environmentsToProvision.put(env.getName(), env);
-		latches.put(env.getName(), latch);
-		new HostWatcher(this, persistence);
-		latch.await();
+	public BlockingEventStep buildStepToBlockUntilProvisioned(Environment env) {
 
+		EnvironmentEvent toSend = new EnvironmentEvent.Builder(
+				ZookeeperEnvironmentEventType.BLOCK_UNTIL_ENVIRONMENT_PROVISIONED,
+				env).build();
+		EnvironmentEvent waitingFor = new EnvironmentEvent.Builder(
+				ZookeeperEnvironmentEventType.ALL_HOSTS_APPEARED, env).build();
+
+		BlockingEventStep blockingEventStep = BlockingEventStep.factory(
+				publisher, toSend, waitingFor);
+
+		environmentsToProvision.put(env.getName(), env);
+		latches.put(env.getName(), blockingEventStep);
+		//TODO suscpicous
+		new HostWatcher(this, persistence);
+		return blockingEventStep;
+	}
+
+	@Override
+	public void handle(EnvironmentEvent appeared) {
+		if (appeared.type == ZookeeperEnvironmentEventType.HOST_APPEARED) {
+			for (String environmentName : environmentsToProvision.keySet()) {
+				boolean hasRemaining = false;
+				//TODO environment are already encapsulated, so this should not be necessary:
+				Environment environment = environmentsToProvision
+						.get(environmentName);
+				for (Host node : environment.getHosts()) {
+					if (node.getHostname().equals(appeared.getHost().getHostname())) {
+						logger.debug("provisioned: " + node);
+						node.setProvisioned();
+					} else {
+						if (!node.isProvisioned()) {
+							// logger.debug("not provisioned yet: " + node);
+							hasRemaining = true;
+						}
+					}
+				}
+
+				if (!hasRemaining) {
+					logger.debug("complete: " + environmentName);
+					//BlockingEventStep latch = latches.get(environmentName);
+					EnvironmentEvent done = new EnvironmentEvent.Builder(
+							ZookeeperEnvironmentEventType.ALL_HOSTS_APPEARED, environment).build();
+					publisher.publish(done);
+					environmentsToProvision.remove(environmentName);
+					latches.remove(environmentName);
+					return;
+				}
+			}
+		}
 	}
 }

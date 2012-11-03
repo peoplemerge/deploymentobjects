@@ -30,28 +30,40 @@ import java.util.List;
 
 import org.deploymentobjects.core.domain.model.environment.Environment;
 import org.deploymentobjects.core.domain.model.environment.EnvironmentRepository;
+import org.deploymentobjects.core.domain.model.execution.CreatesJob;
 import org.deploymentobjects.core.domain.model.execution.Dispatchable;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
 import org.deploymentobjects.core.domain.model.execution.Executable;
 import org.deploymentobjects.core.domain.model.execution.ExitCode;
-import org.deploymentobjects.core.domain.model.execution.Step;
+import org.deploymentobjects.core.domain.model.execution.Job;
+import org.deploymentobjects.core.domain.model.execution.Script;
+import org.deploymentobjects.core.domain.model.execution.SequentialSteps;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeployApplicationCommand implements Executable {
 
+public class DeployApplicationCommand implements CreatesJob {
+
+	
 	private Dispatchable dispatch;
 	private String appName;
 	private EnvironmentRepository environmentRepository;
 	private Environment environment;
-	private List<Step> steps = new LinkedList<Step>();
-	public List<Step> getSteps() {
-		return steps;
-	}
+	
+	//private List<DispatchableStep> steps = new LinkedList<DispatchableStep>();
+
 
 	private Logger logger = LoggerFactory
 			.getLogger(DeployApplicationCommand.class);
+	public EventPublisher publisher;
+	public String environmentName;
+	private SequentialSteps steps = new SequentialSteps(publisher);
+	public SequentialSteps getSteps(){
+		return steps;
+	}
 
-	private DeployApplicationCommand() {
+	public DeployApplicationCommand() {
 	}
 
 	public static class Builder {
@@ -68,21 +80,22 @@ public class DeployApplicationCommand implements Executable {
 		List<Tuple> commandsToNodes = new LinkedList<Tuple>();
 
 		private DeployApplicationCommand command = new DeployApplicationCommand();
-		private String environmentName;
 
-		public Builder(String appName, String environmentName, EnvironmentRepository repo) {
+		public Builder(EventPublisher publisher, String appName, String environmentName, EnvironmentRepository repo, Dispatchable dispatch) {
 			command.appName = appName;
-			this.environmentName = environmentName;
+			command.environmentName = environmentName;
 			command.environmentRepository = repo;
+			command.publisher = publisher;
+			command.dispatch = dispatch;
 		}
 
 		public DeployApplicationCommand build() {
 			command.environment = command.environmentRepository
-					.lookupByName(environmentName);
+					.lookupByName(command.environmentName);
 			for (Tuple tuple : commandsToNodes) {
-				Executable cmd = new ScriptedCommand(tuple.commands);
-				Step step = new Step(cmd, command.environment
-						.lookupRoleByName(tuple.role));
+				Script cmd = new Script(tuple.commands);
+				DispatchableStep step =  DispatchableStep.factory(command.publisher, cmd, command.environment
+						.lookupRoleByName(tuple.role), command.dispatch);
 				command.steps.add(step);
 			}
 			return command;
@@ -98,32 +111,20 @@ public class DeployApplicationCommand implements Executable {
 			command.dispatch = dispatch;
 			return this;
 		}
+		
+		public Builder withData(/**/){
+			//command.data = not new NoData();
+			return this;
+		}
 
 	}
 
+
 	@Override
-	public ExitCode execute() {
-		for (Step step : steps) {
-			try {
-				logger.info("Dispatch " + step);
-				ExitCode exitcode = dispatch.dispatch(step);
-				if (exitcode != ExitCode.SUCCESS) {
-					logger.error("Dispatch execution failed: "
-							+ step.getOutput());
-					return ExitCode.FAILURE;
-				}else{
-					logger.debug(step.getOutput());
-				}
-			} catch (Exception e) {
-				// TODO fail-fast behavior, alternatives would be desirable for
-				// users.
-				// Consider rollback
-				// Add finer controls than "failure"
-				logger.error("Exception dispatching " + e.toString());
-				return ExitCode.FAILURE;
-			}
-		}
-		return ExitCode.SUCCESS;
+	public Job create() {
+		
+		Job job = new Job(publisher, steps);
+		return job;
 	}
 
 }

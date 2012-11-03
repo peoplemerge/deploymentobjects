@@ -36,19 +36,17 @@ import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.TokenStream;
 import org.deploymentobjects.core.DeploymentObjectsLexer;
 import org.deploymentobjects.core.DeploymentObjectsParser;
-import org.deploymentobjects.core.domain.model.environment.Host;
 
 
 public class Program {
 
-	private List<Step> steps = new LinkedList<Step>();
+	private List<CreatesJob> steps = new LinkedList<CreatesJob>();
 
-	public void addStep(Executable command, AcceptsCommands acceptsCommands) {
-		Step step = new Step(command, acceptsCommands);
-		steps.add(step);
+	public void addStep(CreatesJob executable){
+		steps.add(executable);
 	}
 
-	public List<Step> getSteps() {
+	public List<CreatesJob> getSteps() {
 		return steps;
 	}
 
@@ -57,23 +55,17 @@ public class Program {
 	}
 
 	public String toString() {
-		String toRun = "";
-		for (Step step : steps) {
-			// Loop through nodes here too?
-			// Really need to use the runner!
-			for (Host node : step.getHosts()) {
-				toRun += "on " + node + " run " + step.getCommand();
-			}
-		}
-		return toRun;
+		
+		return steps.toString();
 	}
 
 	public void execute() {
-		for (Step step : steps) {
+		for (CreatesJob step : steps) {
 			// Loop through nodes here too?
 			// Really need to use the runner!
 			System.out.println("Program executing step: " + step.toString());
-			step.execute();
+			Job job = step.create();
+			job.execute();
 		}
 	}
 

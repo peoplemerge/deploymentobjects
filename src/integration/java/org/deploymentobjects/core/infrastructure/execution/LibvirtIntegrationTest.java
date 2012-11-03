@@ -3,12 +3,13 @@ package org.deploymentobjects.core.infrastructure.execution;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.deploymentobjects.core.application.ScriptedCommand;
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.ControlsHosts;
-import org.deploymentobjects.core.domain.model.execution.Step;
-import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
-import org.deploymentobjects.core.infrastructure.execution.LibvirtAdapter;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
+import org.deploymentobjects.core.domain.model.execution.Script;
+import org.deploymentobjects.core.domain.shared.EventPublisher;
+import org.deploymentobjects.core.domain.shared.EventStore;
+import org.deploymentobjects.core.infrastructure.persistence.InMemoryEventStore;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,6 +19,8 @@ import com.jcraft.jsch.Logger;
 public class LibvirtIntegrationTest {
 
 	ExecutorService executor = Executors.newSingleThreadExecutor();
+	EventStore eventStore = new InMemoryEventStore();
+	EventPublisher publisher = new EventPublisher(eventStore);
 
 	Logger jschLogger = new Logger() {
 		public boolean isEnabled(int level) {
@@ -29,18 +32,12 @@ public class LibvirtIntegrationTest {
 		}
 	};
 
-	private Step executeRemote(String commandStr) {
-		ScriptedCommand command = new ScriptedCommand(commandStr);
-		Step step = new Step(command, node);
-		try {
-			jsch.dispatch(step);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	private DispatchableStep executeRemote(String commandStr) {
+		Script command = new Script(commandStr);
+		DispatchableStep step = DispatchableStep.factory(publisher,command, node, jsch);
+		step.execute();
 		return step;
 	}
-
 	Runnable starter = new Runnable() {
 		public void run() {
 			String commandStr = "/usr/bin/virsh start " + vm;
@@ -71,7 +68,7 @@ public class LibvirtIntegrationTest {
 	public LibvirtIntegrationTest() {
 		JSch.setLogger(jschLogger);
 		String username = System.getProperty("user.name");
-		jsch = new JschDispatch(username);
+		jsch = new JschDispatch(publisher, username);
 		node = new Host(host);
 	}
 
@@ -92,7 +89,7 @@ public class LibvirtIntegrationTest {
 	@Test
 	public void startStop() throws Exception {
 		String commandStr = "/usr/bin/virsh list";
-		Step step; 
+		DispatchableStep step; 
 		step = executeRemote(commandStr);
 		Assert.assertTrue(!step.getOutput().contains(vm));
 		ControlsHosts lv = new LibvirtAdapter(
@@ -100,7 +97,9 @@ public class LibvirtIntegrationTest {
 		boolean retval = lv.startHost(vm);
 		Assert.assertTrue(retval == true);
 		step = executeRemote(commandStr);
-		Assert.assertTrue(step.getOutput().contains(vm));
+		String output = step.getOutput();
+		System.out.println(output);
+		Assert.assertTrue(output.contains(vm));
 		System.out.println("Stopped VM");
 		retval = lv.stopHost(vm);
 		Assert.assertTrue(retval == true);

@@ -34,8 +34,8 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.deploymentobjects.core.domain.model.environment.provisioning.ProvisioningEvent;
 import org.deploymentobjects.core.domain.model.execution.AcceptsCommands;
+import org.deploymentobjects.core.domain.shared.DomainEvent;
 import org.deploymentobjects.core.domain.shared.Entity;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
 
@@ -54,7 +54,7 @@ public class Host implements AcceptsCommands, Entity<Host> {
 
 	private String domainname;
 
-	private List<ProvisioningEvent> changes;
+	private List<DomainEvent<?>> changes;
 	
 	public String getDomainname() {
 		return domainname;
