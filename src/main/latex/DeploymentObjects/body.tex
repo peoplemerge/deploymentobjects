@@ -1,0 +1,307 @@
+
+
+\chapter{INTRODUCTION}
+\label{chap:intro}
+
+\section{Problem Statement}
+
+Just as administering most production environments is a labor-intensive manual
+process, there is no such thing as an installer for distributed systems.
+Deploying distributed software systems today involves a sequence of steps across
+multiple systems which are individually automated but rarely automated as a
+group. In instances when deployment is automated, it is accomplished by 1-off
+scripts too tightly coupled to external communication to be reusable. So many
+orthogonal concerns exist that efforts produce quickly growing balls of mud.
+
+As a result, consider the task of creating a distributed Continuous Integration
+(CI) server: many organizations run CI servers on a single machine but a
+distributed CI server farm requires extensive setup and configuration for each
+company that wishes to run load tests, so only the most well-funded
+organizations follow the practice; small projects don't follow the
+practice. Production environments are deployed using a different process from
+that which occurs from the CI server. Certain steps must be done manually,
+leaving the possibility for user error. The result is that the devevelopment
+environment differs from the production environment, resulting in a higher
+frequency of errors when software is released, causing various forms of pain to
+the organization.
+
+\section{Background}
+
+\subsection{Existing Methodologies}
+\subsubsection{Manual}
+\label{existing:manual}
+
+Consider a site with seperate development and operations groups.  The
+development group produces a release, and the operations group follows the
+installation documentation and manually installs the application in the
+production environment.
+
+\subsubsection{Systems Configuration}
+\label{existing:sysconfig}
+
+Consider a site early in their attempts to automate their environment.
+Developers code a web application, run their builds, and copy the artifacts to a
+test server.  On the test server managed by an automated configuration tool, the
+developers restart a container and either tail a logfile until it says it's
+ready, or waits the usual amount of time until they think the application has
+finished deploying. Then they open up a browser, enter the URL, and look to
+see if the page loads.
+ 
+Some weeks go by, QA says the release appears ready to go to
+production. Unfortunately, nobody ran the updated configuration management
+config in QA and your updates take down production, so they have to back out
+your changes. 
+
+
+\subsubsection{A Continuous Delivery Pipeline}
+\label{existing:continuousdeliverpipeline}
+
+In a continuous delivery \cite{CONTINUOUSDELIVERY} pipeline, version
+control systems are used, artifacts are stored in artifact repositories, systems
+are configured using configuration management tools, and deployment scripts are
+written using orchestration tools.
+
+Etsy has such a implementation, and they require all new engineers to deploy
+to production on their first day on the job \cite{ETSYDEPLOYDAYONE}.
+
+
+\subsubsection{Limitations of Existing Methodologies}
+
+
+Although \ref{existing:manual} and \ref{existing:sysconfig} can be automated
+by widely-available tools, even in \ref{existing:continuousdeliverpipeline},
+there are few standards for integrating the pieces, and the market
+for configuration management tools is highly fragmented, so every organization
+implements the pipeline differently.
+
+
+\subsection{History}
+
+\subsubsection{Shell Scripts}
+
+Automated system configuration and deployment tools have existed in various
+forms for years.  The most basic such tool is written in a shell scripting
+language such as the Bourne shell, created in 1977 \cite{BOURNESHELL}, and
+solves a single purpose, such as starting a network interface on a host.  It's successor,
+Bourne-Again Shell (bash) scripts combine to control the majority of start up
+tasks for modern System V and Berkeley UNIX variants and is extensively used in
+industry.  The C shell (csh) and its descendants dominate systems programming in
+academic environments.  
+
+
+\subsubsection{Provisioning}
+
+Jumpstart was developed for Solaris in 1994  \cite{JUMPSTART} which reads
+installation options from a file when provisioning a Solaris host, freeing up
+the administrator from repeatedly selecting the same options from the user
+interface manually.  Likewise, Linux vendors developed analogous tools (such as
+Kickstart, packaged by Red Hat) starting with early version of their
+distributions, and the ability quickly became widespread.
+
+\subsubsection{Configuration Management}
+
+Configuration Management (CM) tools for systems began with CFEngine, a
+post-doctoral open-source project started by Mark Burgess at Oslo University in
+1993 \cite{CFENGINE}.  After their operating systems have been configured such
+as with Jumpstart or Kickstart, CFEngine allows a systems administrator to group systems
+and configure them in a uniform and operating-system-independent manner using
+human-readable configuration files.  Being the first tool of its kind, CFEngine
+continues to be developed and is the most widely-used CM tool in use today.  It
+is written in C.
+
+Commercial CM tools have also been developed, such as BMC BladeLogic, HP
+OpenView, and IBM Tivoli, but due to their high cost, open-source tools dominate
+the market.
+
+In 2005, CFEngine contributor and former BMC employee Luke Kanies developed
+Puppet \cite{LUKEKANIESINTERVIEW}.  It was written in Ruby and quickly gathered
+a large community by being more easily extended than CFEngine.  Administrators use Puppet's declarative
+external Domain Specific Language (DSL) \cite{DSL} to create manifests that
+define the desired state of a system; daemons then alter the current state of the system so
+it becomes the desired state.  For example, managing users or setting up NFS
+mounts can be done by using the provided DSL.  The DSL can be extended by
+developing modules in Ruby.  The Puppet community has provided a large number of
+modules that simplify and standardize many common administration tasks, such as
+configuring a Hadoop cluster or a DNS server via Puppet Forge, a site built for
+sharing modules.
+
+In 2009, Puppet contributor Jesse Robbins released yet another alternative,
+Chef, which uses an internal DSL rather than an external DSL \cite{DSL}; the
+administrator develops in pure Ruby instead of Puppet's proprietary language, which is not
+turing-complete.
+
+In March-April 2012, Netflix Cloud Architect Adrian Cockroft wrote a series
+of controversial \cite{INFOQNOOPS} blog posts describing how DevOps supplanted
+the traditional role of Operations by automating systems provisioning and continuous delivery 
+\cite{NETFLIXNOOPS}.
+
+\subsubsection{Orchestrated Deployment}
+
+One limitation of CM tools such as Puppet is that when the administrator alters
+the configuration that is shared between nodes, the change only occurs when a
+timer on the node expires, causing it to check for changes to apply.  The only
+way to coordinate changes across nodes is by using an external tool to trigger
+the execution.  Until recently, attempts to provide provisioning orchestration
+were limited in design to SSH-for-loops.
+
+In 2011, Canonical introduced Juju \cite{JUJU} (formerly named Ensemble), an
+orchestration tool for the Ubuntu Linux distribution, which is designed around
+topologies of service deployment, but also handles provisioning tasks to cloud
+architecture.  The orchestration components that users develop to engage the
+orchestration harness are called Charms.  As of this writing, only cloud
+architectures are supported, and only Ubuntu.
+
+Following a 2010 discussion \cite{ANSIBLEYAML} with the author of this thesis,
+developer Michael DeHaan introduced Ansible, an orchestration platform where
+users define tasks called PlayBooks in YAML, which coordinates SSH and
+messaging tasks \cite{ANSIBLE}.  Ansible embeds configuration management
+functionality and coordinates tasks to services that expose JSON objects.
+
+
+
+\chapter{ARCHITECTURE}
+
+\section{Architectural Overview}
+Here I introduce a novel DeploymentObjects tool that attempts to reduce the
+pains of deploying and maintaining applications by making tasks previously
+impractical to automate practical.  The DeploymentObjects project provides a
+user-extensible external Domain-Specific Language (DSL) that describes
+distributed automation tasks using the ANTLR meta-compiler but also allows the
+user to interface with its internal DSL with a reference implementation written
+in Java (implementations in Ruby, Perl, and Python will follow).  It introduces
+the Deployment Object design pattern and provides a Domain-Driven Design (DDD)
+\cite{DDD} \cite{IMPLEMENTINGDDD} for achieving the intended goals, promoting
+code reuse and extension while being covered by extensive unit and integration tests.  It does not reinvent
+wheels such as perfectly good configuration management tools but provides
+sensible hooks with which to trigger them.  It employs multiple methods for
+dispatching actions: SSH for bootstrapping and simple tasks, and Zookeeper for
+coordinating distributed tasks.  Users can specify their current environments
+using a simple YAML state repository or loaded into Zookeeper where they can be
+used as a blackboard watched by many nodes.  Finally, to deal with events that
+occur such as errors appearing in a logfile, developers can employ grammars to
+trigger events, triggering action elsewhere.
+
+
+\section{Initial User Stories}
+
+To to prove the concept and flesh out the object model, 3 use cases were built.
+
+\subsection{Create an environment}
+
+In this use case, we create CentOs 6 virtual machines using kickstart and add
+them to a naming service, initially POSIX hosts files, to create environment to
+which one could deploy applications.
+
+Although more time consuming to build and provision, automated bare-metal system
+installation is preferable to cloning existing VMs since the process is
+transparent and can be updated at a later date.  Cloned VMs from a gold image
+suffer when changes must be made to them, such as updating the operating system
+to a newer version: the user must rely on a documented process that was followed
+and is up to date.
+
+A reasonable middle ground may be followed which does both: one uses a
+source-controlled process to create a gold image using an automated process; one
+can clone the gold image when new VMs are needed; should a change to the gold
+image be required, one changes the source and builds a new gold image that can
+be cloned.  Doing both capitalizes on the speed of copying VMs while providing a
+repeatable means of creating the gold image.
+
+This is accomplished by writing kickstart files for each node, connecting via
+SSH to a hypervisor capable of creating virtual machines, and executing a script
+that initiates the creation of a node.
+
+For this implementation, several assumptions are made.
+
+It is assumed the user does not control the DNS server he uses.  This is typical
+for developers who submit code releases to systems administrators in an
+operations group who controls production servers.  Many operations already have
+the process of adding hosts to DNS servers automated, so we don't reinvent the
+wheel. If such a group were to use the system, they would just need to implement
+an interface that calls their automation framework.  It is assumed that name
+resolution through hosts files is sufficient.
+
+It is assumed that the operating system to be GNU/Linux. Other operating systems
+will be supported in time.
+
+This is a useful use case because creating a group of VMs for the purpose of
+deploying and testing code from a Continuous Integration (CI) server currently
+requires some special tooling to overcome several problems.  First, using a
+bare-metal installation process, once VMs finish their installation, they shut
+down and must be restarted.  Next, their hostnames must be set and their IPs
+must be obtained programmatically and saved to some type of naming service.
+Once all nodes are provisioned, they must notify the process on the CI server
+that provisioning is complete so it can proceed with deploying and testing the
+code on those nodes.  Finally, it is also beneficial because one can employ the
+same code base to deploy the application to a production environment.
+
+\subsection{Deploy code to the environment}
+
+todo
+
+\subsection{When a significant event is reported in a log file, trigger an
+action to occur in that environment}
+
+todo
+
+\section{Ubiquitous Language}
+
+DDD places a high priority on Ubiquitous Language, which strives to get the
+terms used by domain experts to be the same as those software developers.  In a
+DDD implementation, code design such as class, variable, and method names
+closely resemble the technical jargon used by the experts.  An attempt at
+defining a ubiquitous language for DeploymentObjects produced the following
+language, with key modeling concepts in CAPS:
+
+ENVIRONMENTS include HOSTS optionally organized by ROLES.  ENVIRONMENTS have
+identity and they are the aggregate root for HOSTS and ROLES.
+
+A DISTRIBUTION is a mapping of APPLICATION DATA and ARTIFACTS to HOSTS by their
+ROLE.  A USER can DEFINE a DISTRIBUTION.
+
+A DEPLOYMENT is built from a DISTRIBUTION applied to an ENVIRONMENT.
+
+HOSTS have access to STORAGE, which may be LOCAL storage on that HOST, an NFS
+server, checkpointed DISK IMAGES available to a HYPERVISOR, or ONLINE STORAGE
+such as Amazon’s S3. APPLICATION DATA resides on STORAGE.
+
+A HYPERVISOR is a HOST with the ability to CONTROL the POOL of HOSTS running
+inside it, performing actions like creating HOSTS using unallocated disk and cpu
+resources.  Amazon’s EC2 also provides the ability to CONTROL a POOL of HOSTS,
+but unlike a HYPERVISOR, it is not a HOST.
+
+A PROCEDURE is composed of a series of STEPS that can be run locally or
+DISPATCHED to another HOST.  A PROCEDURE can be used to CREATE an ENVIRONMENT,
+or to change the STATE of an existing ENVIRONMENT.  A USER can DEFINE a
+PROCEDURE.
+
+A JOB is what is run at the time a USER requests that a PROCEDURE be applied to
+an ENVIRONMENT.  The system can be organized such that when an error takes
+place, it triggers some action by RUNNING a JOB.  A running JOB updates the
+state of the ENVIRONMENT through EVENTS.
+
+A PACKAGE is an ARTIFACT with an externally-controlled resource STATE, whereas a
+BUNDLE is an ARTIFACT without externally-controlled resource STATE.
+
+RPM is a type of PACKAGE, and TAR and JAR are types of BUNDLE.
+
+ARTIFACTS can even be a collection of uncommitted source files in a directory of
+the user’s HOST, but it is neither a PACKAGE, nor a BUNDLE.
+
+YUM is an ARTIFACT REPOSITORY that makes RPM PACKAGES available.  A MAVEN
+REPOSITORY is an ARTIFACT REPOSITORY that makes JAR BUNDLES available.  A
+VERSIONED DIRECTORY
+
+A USER specifies a PROCEDURE contained in the MODEL to run in a specific
+ENVIRONMENT.
+
+Some common PROCEDURES include:
+
+an ENVIRONMENT CREATION PROCEDURE a BUILD PROCEDURE gets source code from a
+SOURCE REPOSITORY to create an PACKAGE or BUNDLE and loads it into an ARTIFACT
+REPOSITORY and an INSTALLATION PROCEDURE which loads an ARTIFACT from a
+REPOSITORY onto a HOST by its ROLE.
+An ENVIRONMENT built from SNAPSHOT STORAGE can be reverted to it’s original
+STATE.
+
+\chapter{RESULTS}
+

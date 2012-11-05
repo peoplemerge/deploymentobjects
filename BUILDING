@@ -34,5 +34,10 @@ LD_LIBRARY_PATH=/opt/local/lib
 Also for libvirt connections, mac socket file locations are different, so append 
 ?socket=path.  Ex: qemu+ssh://ino/system?socket=/var/run/libvirt/libvirt-sock"
 
+Building Documentation:
+(Ubuntu) apt-get install texlive-full
+(CentOS/RedHat/Fedora) yum install texlive*
+(MacOS - Using MacPorts) port install texlive texlive-science texlive-latex-extra texlive-generic-recommended
+mvn latex:latex
 Some integration tests depend on libvirt and zookeeper to be installed and running.
 
