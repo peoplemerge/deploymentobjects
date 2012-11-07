@@ -159,30 +159,8 @@ functionality and coordinates tasks to services that expose JSON objects.
 
 
 
-\chapter{ARCHITECTURE}
-
-\section{Architectural Overview}
-Here I introduce a novel DeploymentObjects tool that attempts to reduce the
-pains of deploying and maintaining applications by making tasks previously
-impractical to automate practical.  The DeploymentObjects project provides a
-user-extensible external Domain-Specific Language (DSL) that describes
-distributed automation tasks using the ANTLR meta-compiler but also allows the
-user to interface with its internal DSL with a reference implementation written
-in Java (implementations in Ruby, Perl, and Python will follow).  It introduces
-the Deployment Object design pattern and provides a Domain-Driven Design (DDD)
-\cite{DDD} \cite{IMPLEMENTINGDDD} for achieving the intended goals, promoting
-code reuse and extension while being covered by extensive unit and integration tests.  It does not reinvent
-wheels such as perfectly good configuration management tools but provides
-sensible hooks with which to trigger them.  It employs multiple methods for
-dispatching actions: SSH for bootstrapping and simple tasks, and Zookeeper for
-coordinating distributed tasks.  Users can specify their current environments
-using a simple YAML state repository or loaded into Zookeeper where they can be
-used as a blackboard watched by many nodes.  Finally, to deal with events that
-occur such as errors appearing in a logfile, developers can employ grammars to
-trigger events, triggering action elsewhere.
-
-
 \section{Initial User Stories}
+\label{section:userstories}
 
 To to prove the concept and flesh out the object model, 3 use cases were built.
 
@@ -242,6 +220,77 @@ todo
 action to occur in that environment}
 
 todo
+
+
+\chapter{ARCHITECTURE}
+
+\section{Architectural Overview}
+Here I introduce a novel DeploymentObjects tool that attempts to reduce the
+pains of deploying and maintaining applications by making tasks previously
+impractical to automate practical.  The DeploymentObjects project provides a
+user-extensible external Domain-Specific Language (DSL) that describes
+distributed automation tasks using the ANTLR meta-compiler but also allows the
+user to interface with its internal DSL with a reference implementation written
+in Java (implementations in Ruby, Perl, and Python will follow).  It introduces
+the Deployment Object design pattern and provides a Domain-Driven Design (DDD)
+\cite{DDD} \cite{IMPLEMENTINGDDD} for achieving the intended goals, promoting
+code reuse and extension while being covered by extensive unit and integration tests.  It does not reinvent
+wheels such as perfectly good configuration management tools but provides
+sensible hooks with which to trigger them.  It employs multiple methods for
+dispatching actions: SSH for bootstrapping and simple tasks, and Zookeeper for
+coordinating distributed tasks.  Users can specify their current environments
+using a simple YAML state repository or loaded into Zookeeper where they can be
+used as a blackboard watched by many nodes.  Finally, to deal with events that
+occur such as errors appearing in a logfile, developers can employ grammars to
+trigger events, triggering action elsewhere.
+
+\section{Architectural Styles}
+
+In order to solve domain problems to high design standards, several
+architectural styles are in use.
+
+DeploymentObjects employs a Layers \cite{IMPLEMENTINGDDD} architectural style,
+which separate layers between User Interface, Application, Domain, and
+Infrastructure.  The User Interface layer includes the web UI,
+and a dependency injection method to access to the application using either the
+DSL, or without the DSL using the API.
+The Application layer is a thin layer that arranges domain objects to allow
+the user stories specified in \ref{section:userstories} to occur.  The Domain
+layer contains models for configuration, the environment, and execution.  The
+bulk of the logic of the system occurs in this layer.  The Infrastructure layer
+provides low-level access to other systems, such as secure shell, naming
+service, virtualization, and persistence.  
+
+The modular decomposition of the system follows this convention:
+java packages are named consistently with these layers.  It should be noted the
+layers implementation follows the more modern variation consistent
+with the Dependancy Inversion Principle (DIP) \cite{DIP} put forth in
+\cite{IMPLEMENTINGDDD} in that it implements interfaces in the domain layer,
+making Infrastructure dependant on the other layers.
+(todo - add pictures)
+
+DeploymentObjects employs the Hexagonal architectural style of Ports and
+Adapters.  All external interfaces described in the Infrastructure layer are
+pluggable adapters connected by Inversion of Control (IOC).  Unlike the
+project's integration tests, the unit tests exploit these adapters extensively
+by providing Mock Objects \cite{XUNIT} to external systems.
+
+DeploymentObjects employs a Command-Query Responsibility Segregation (CQRS)
+style \cite{IMPLEMENTINGDDD}.  The web
+UI only provides means to query.  As mentioned previously in this section the
+Application assembles Domain objects to be executed as set of Commands
+\cite{GOF} modeled generally as a long-running process or saga, but named as a job
+to follow more closely the language of the domain.  Similar to most Command Processors
+\cite{POSA} controls exist for executing jobs, as well as the optional interface
+extensions for resuming and rolling back jobs.
+
+Finally, DeploymentObjeects employs an Event-Driven style.  Significant changes
+to the system are signalled between Command processing by Domain Events that
+resemble a Momento \cite{GOF}.  As it is desirable to track changes to the
+system, this style further employs an Event Sourcing \cite{EVENTSOURCING}
+architectural pattern: it is only by publishing Domain Events that Commands
+trigger events to alter the state of the system.  An Event Store retains a
+record of the events that have altered the state of the system.
 
 \section{Ubiquitous Language}
 
@@ -304,4 +353,31 @@ An ENVIRONMENT built from SNAPSHOT STORAGE can be reverted to it’s original
 STATE.
 
 \chapter{RESULTS}
+
+DeploymentObjects faces many hurdles.  Since the inception of the project in
+2010, many projects have been introduced that overlap the stated goals of
+DeploymentObjects, although no outright solutions exist.
+
+DeploymentObjects is currently written in Java.  This presents an
+opportunity as no other Java-based solutions exist for system provisioning and
+the orchestratation of application deployment.  However, DevOps users require
+support for scripting languages, predominantly Python, Ruby, and Perl.
+Support may be added via metalanguages JRuby, Jython, and BSFPerl, although a
+direct port to one of those languages is under consideration, which could
+attract potential contributors. A convention would need to be established to
+support more than one language to ensure that with each release, implementations
+treated events and repository storage structures uniformly.  Continuing with the
+meta-compiler emphasis promoted by DeploymentObjects, specifying tests using
+natural languages could be an effective means to enact that convention.
+
+The JSCH implementation of SSH is somewhat primitive for the purposes of this
+project.  Many operations users depend on extensive OpenSSH configuration
+directive to allow functionality specific to their environments, such as port
+forwarding and bastion hosts.  An adapter to fork OpenSSH would satisfy those
+requirements but would need to be written.  Alternatively, excellent libraries
+such as Fabric \cite{FABFILE} exist for Python and other scripting languages, so
+developing an adapter of that kind would require the aforementioned scripting
+support.
+
+
 
