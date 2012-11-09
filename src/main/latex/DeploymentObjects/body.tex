@@ -25,10 +25,10 @@ environment differs from the production environment, resulting in a higher
 frequency of errors when software is released, causing various forms of pain to
 the organization.
 
-\section{Background}
+\chapter{Background}
 
-\subsection{Existing Methodologies}
-\subsubsection{Manual}
+\section{Existing Methodologies}
+\subsection{Manual}
 \label{existing:manual}
 
 Consider a site with seperate development and operations groups.  The
@@ -36,7 +36,7 @@ development group produces a release, and the operations group follows the
 installation documentation and manually installs the application in the
 production environment.
 
-\subsubsection{Systems Configuration}
+\subsection{Systems Configuration}
 \label{existing:sysconfig}
 
 Consider a site early in their attempts to automate their environment.
@@ -53,7 +53,7 @@ config in QA and your updates take down production, so they have to back out
 your changes. 
 
 
-\subsubsection{A Continuous Delivery Pipeline}
+\subsection{A Continuous Delivery Pipeline}
 \label{existing:continuousdeliverpipeline}
 
 In a continuous delivery \cite{CONTINUOUSDELIVERY} pipeline, version
@@ -65,7 +65,7 @@ Etsy has such a implementation, and they require all new engineers to deploy
 to production on their first day on the job \cite{ETSYDEPLOYDAYONE}.
 
 
-\subsubsection{Limitations of Existing Methodologies}
+\subsection{Limitations of Existing Methodologies}
 
 
 Although \ref{existing:manual} and \ref{existing:sysconfig} can be automated
@@ -75,9 +75,9 @@ for configuration management tools is highly fragmented, so every organization
 implements the pipeline differently.
 
 
-\subsection{History}
+\section{History}
 
-\subsubsection{Shell Scripts}
+\subsection{Shell Scripts}
 
 Automated system configuration and deployment tools have existed in various
 forms for years.  The most basic such tool is written in a shell scripting
@@ -86,10 +86,10 @@ solves a single purpose, such as starting a network interface on a host.  It's s
 Bourne-Again Shell (bash) scripts combine to control the majority of start up
 tasks for modern System V and Berkeley UNIX variants and is extensively used in
 industry.  The C shell (csh) and its descendants dominate systems programming in
-academic environments.  
+academic environments.
 
 
-\subsubsection{Provisioning}
+\subsection{Provisioning}
 
 Jumpstart was developed for Solaris in 1994  \cite{JUMPSTART} which reads
 installation options from a file when provisioning a Solaris host, freeing up
@@ -98,7 +98,7 @@ interface manually.  Likewise, Linux vendors developed analogous tools (such as
 Kickstart, packaged by Red Hat) starting with early version of their
 distributions, and the ability quickly became widespread.
 
-\subsubsection{Configuration Management}
+\subsection{Configuration Management}
 
 Configuration Management (CM) tools for systems began with CFEngine, a
 post-doctoral open-source project started by Mark Burgess at Oslo University in
@@ -135,7 +135,7 @@ of controversial \cite{INFOQNOOPS} blog posts describing how DevOps supplanted
 the traditional role of Operations by automating systems provisioning and continuous delivery 
 \cite{NETFLIXNOOPS}.
 
-\subsubsection{Orchestrated Deployment}
+\subsection{Orchestrated Deployment}
 
 One limitation of CM tools such as Puppet is that when the administrator alters
 the configuration that is shared between nodes, the change only occurs when a
@@ -354,6 +354,8 @@ STATE.
 
 \chapter{RESULTS}
 
+
+
 DeploymentObjects faces many hurdles.  Since the inception of the project in
 2010, many projects have been introduced that overlap the stated goals of
 DeploymentObjects, although no outright solutions exist.
@@ -379,5 +381,8 @@ such as Fabric \cite{FABFILE} exist for Python and other scripting languages, so
 developing an adapter of that kind would require the aforementioned scripting
 support.
 
+
+
+\chapter{CONCLUSION}
 
 
