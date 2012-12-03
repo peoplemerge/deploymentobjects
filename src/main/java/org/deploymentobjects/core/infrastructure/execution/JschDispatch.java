@@ -56,6 +56,7 @@ public class JschDispatch implements Dispatchable {
 	
 	@Override
 	public void dispatch(DispatchEvent event) {
+		System.out.println("JSCH Dispatch recieved " +event);
 	 String allOutput = "";
 
 		for (Host node : event.target.getHosts()) {

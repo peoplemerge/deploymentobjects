@@ -23,6 +23,7 @@ import org.deploymentobjects.core.domain.model.execution.Executable;
 import org.deploymentobjects.core.domain.shared.EventPublisher;
 import org.deploymentobjects.core.domain.shared.EventStore;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
+import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence.ZookeeperPersistenceException;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -36,7 +37,7 @@ public class ZookeeperEnvironmentRepositoryTest {
 			mock, publisher);
 
 	@Test
-	public void testLookupByName() {
+	public void testLookupByName() throws ZookeeperPersistenceException {
 		String environmentName = "testenv";
 		String hostname = "testenv1";
 		String ip = "192.168.0.5";
@@ -66,7 +67,7 @@ public class ZookeeperEnvironmentRepositoryTest {
 	}
 
 	@Test
-	public void testLookupWithDomainname() {
+	public void testLookupWithDomainname() throws ZookeeperPersistenceException {
 		String environmentName = "testenv";
 		String hostname = "testenv1";
 		String ip = "192.168.0.5";
@@ -101,7 +102,7 @@ public class ZookeeperEnvironmentRepositoryTest {
 	}
 
 	@Test
-	public void testLookupWithRole() {
+	public void testLookupWithRole() throws ZookeeperPersistenceException {
 		String environmentName = "testenv";
 		String hostname = "testenv1";
 		String ip = "192.168.0.5";
@@ -137,7 +138,7 @@ public class ZookeeperEnvironmentRepositoryTest {
 	// TODO test for multiple roles
 
 	@Test
-	public void testLookupWithMultipleRoles() {
+	public void testLookupWithMultipleRoles() throws ZookeeperPersistenceException {
 		String environmentName = "testenv";
 		String hostname = "testenv1";
 		String ip = "192.168.0.5";
@@ -174,7 +175,7 @@ public class ZookeeperEnvironmentRepositoryTest {
 	}
 
 	@Test
-	public void testGetAll() {
+	public void testGetAll() throws ZookeeperPersistenceException {
 		String firstStr = "first";
 		String first1Str = "first1";
 		String first1ipStr = "192.168.0.11";
@@ -240,23 +241,25 @@ public class ZookeeperEnvironmentRepositoryTest {
 	}
 
 	@Test
-	public void testSave() {
+	public void testSave() throws ZookeeperPersistenceException {
 
 		String environmentName = "testenv";
 		String hostname = "testenv1";
 		String ip = "192.168.0.5";
-		Composite expectedEnvironment = new Composite("environments/"
-				+ environmentName, hostname);
-		Composite hasNoRoles = new Composite("environments/" + environmentName
-				+ "/roles", "");
-		expectedEnvironment.addChild(hasNoRoles);
-		Composite expectedHost = new Composite("hosts/" + hostname, ip);
 
 		Host node = new Host(hostname, ip);
 		Environment env = new Environment(environmentName);
 		env.addHost(node);
 
 		repo.save(env);
+
+		
+		Composite expectedEnvironment = new Composite("environments/"
+				+ environmentName, hostname);
+		Composite hasNoRoles = new Composite("environments/" + environmentName
+				+ "/roles", "");
+		expectedEnvironment.addChild(hasNoRoles);
+		Composite expectedHost = new Composite("hosts/" + hostname, ip);
 
 		verify(mock, times(1)).save(eq(expectedHost));
 		verify(mock, times(1)).save(eq(expectedEnvironment));
@@ -265,12 +268,20 @@ public class ZookeeperEnvironmentRepositoryTest {
 	}
 
 	@Test
-	public void testSaveWithRoles() {
+	public void testSaveWithRoles() throws ZookeeperPersistenceException {
 
 		String environmentName = "testenv";
 		String hostname = "testenv1";
 		String ip = "192.168.0.5";
 		String roleName = "testenvrole";
+
+		Host node = new Host(hostname, ip, new Role(roleName));
+		Environment env = new Environment(environmentName);
+		env.addHost(node);
+
+		repo.save(env);
+
+
 		Composite expectedEnvironment = new Composite("environments/"
 				+ environmentName, "");
 		Composite roles = new Composite("environments/" + environmentName
@@ -281,12 +292,6 @@ public class ZookeeperEnvironmentRepositoryTest {
 		expectedEnvironment.addChild(roles);
 		Composite expectedHost = new Composite("hosts/" + hostname, ip);
 
-		Host node = new Host(hostname, ip, new Role(roleName));
-		Environment env = new Environment(environmentName);
-		env.addHost(node);
-
-		repo.save(env);
-
 		verify(mock, times(1)).save(eq(expectedHost));
 		verify(mock, times(1)).save(eq(expectedEnvironment));
 		verifyNoMoreInteractions(mock);
@@ -294,23 +299,23 @@ public class ZookeeperEnvironmentRepositoryTest {
 	}
 
 	@Test
-	public void testSaveWithoutIp() {
+	public void testSaveWithoutIp() throws ZookeeperPersistenceException {
 
 		String environmentName = "testenv";
 		String hostname = "testenv1";
-		Composite expectedEnvironment = new Composite("environments/"
-				+ environmentName, hostname);
-		Composite roles = new Composite("environments/" + environmentName
-				+ "/roles", "");
-		expectedEnvironment.addChild(roles);
-		Composite expectedHost = new Composite("hosts/" + hostname, "");
-
 		// In this test, node is different... no IP
 		Host node = new Host(hostname);
 		Environment env = new Environment(environmentName);
 		env.addHost(node);
 
 		repo.save(env);
+
+		Composite expectedEnvironment = new Composite("environments/"
+				+ environmentName, hostname);
+		Composite roles = new Composite("environments/" + environmentName
+				+ "/roles", "");
+		expectedEnvironment.addChild(roles);
+		Composite expectedHost = new Composite("hosts/" + hostname, "");
 
 		// don't save a host without the IP
 		verify(mock, never()).save(eq(expectedHost));
@@ -320,21 +325,12 @@ public class ZookeeperEnvironmentRepositoryTest {
 	}
 
 	@Test
-	public void testSaveWithDomainName() {
+	public void testSaveWithDomainName() throws ZookeeperPersistenceException {
 
 		String environmentName = "testenv";
 		String hostname = "testenv1";
 		String ip = "192.168.1.232";
 		String domainname = "example.com";
-
-		Composite expectedEnvironment = new Composite("environments/"
-				+ environmentName, hostname);
-		Composite roles = new Composite("environments/" + environmentName
-				+ "/roles", "");
-		expectedEnvironment.addChild(roles);
-		Composite expectedHost = new Composite("hosts/" + hostname, ip);
-		Composite expectedDomainname = new Composite("hosts/" + hostname
-				+ "/domainname", domainname);
 
 		Host node = new Host(hostname, ip);
 		node.setDomainname(domainname);
@@ -343,12 +339,55 @@ public class ZookeeperEnvironmentRepositoryTest {
 
 		repo.save(env);
 
+		
+		Composite expectedEnvironment = new Composite("environments/"
+				+ environmentName, hostname);
+		Composite roles = new Composite("environments/" + environmentName
+				+ "/roles", "");
+		expectedEnvironment.addChild(roles);
+		Composite expectedHost = new Composite("hosts/" + hostname, ip);
+		Composite expectedDomainname = new Composite("hosts/" + hostname
+				+ "/domainname", domainname);
 		verify(mock, times(1)).save(eq(expectedEnvironment));
 		verify(mock, times(1)).save(eq(expectedHost));
 		verify(mock, times(1)).save(eq(expectedDomainname));
 		verifyNoMoreInteractions(mock);
 	}
 
+	@Test
+	public void testDontSaveDomainnameWithoutIp() throws ZookeeperPersistenceException {
+
+		String environmentName = "testenv";
+		String hostname = "testenv1";
+		String domainname = "example.com";
+
+		// In this test, node is different... no IP
+		Host node = new Host(hostname);
+		node.setDomainname(domainname);
+		Environment env = new Environment(environmentName);
+		env.addHost(node);
+
+		repo.save(env);
+
+		Composite expectedEnvironment = new Composite("environments/"
+				+ environmentName, hostname);
+		Composite roles = new Composite("environments/" + environmentName
+				+ "/roles", "");
+		expectedEnvironment.addChild(roles);
+		Composite expectedHost = new Composite("hosts/" + hostname, "");
+		Composite expectedDomainname = new Composite("hosts/" + hostname
+				+ "/domainname", domainname);
+
+		// don't save a host without the IP
+		verify(mock, never()).save(eq(expectedHost));
+		// but do save the environment
+		verify(mock, times(1)).save(eq(expectedEnvironment));
+		verify(mock, never()).save(eq(expectedDomainname));
+		
+		verifyNoMoreInteractions(mock);
+	}
+
+	
 	static boolean isDone = false;
 
 	@Test
@@ -395,10 +434,11 @@ public class ZookeeperEnvironmentRepositoryTest {
 		assertTrue(isDone);
 
 	}
-
+	
 	@Test
 	@Ignore
 	public void testDelete() {
+		//TODO write this code
 	}
 
 }

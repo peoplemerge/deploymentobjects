@@ -1,5 +1,7 @@
 package org.deploymentobjects.core.domain.model.execution;
 
+import org.deploymentobjects.core.domain.model.environment.Host;
+
 
 
 public class DispatchEvent extends StepExecutionEvent {
@@ -38,4 +40,17 @@ public class DispatchEvent extends StepExecutionEvent {
 		return to;
 	}
 	//TODO Add StepExecutionEvent.dispatchable and .target to sameEventAs
+	
+	@Override
+	public boolean sameEventAs(StepExecutionEvent event) {
+		if(event.getClass() != getClass()){
+			return false;
+		}
+		DispatchEvent in = (DispatchEvent) event;
+		if(target instanceof Host && in.target instanceof Host){
+			return super.sameEventAs(event) && ((Host)target).sameIdentityAs((Host)in.target);
+		}else{
+			return super.sameEventAs(event) && target.equals(in.target);
+		}
+	}
 }

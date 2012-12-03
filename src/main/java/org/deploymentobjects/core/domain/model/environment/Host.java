@@ -248,8 +248,8 @@ public class Host implements AcceptsCommands, Entity<Host> {
 
 	@Override
 	public boolean sameIdentityAs(Host other) {
-		// TODO Auto-generated method stub
-		return false;
+		// TODO Think about what makes a host have identity.  This may need to be user-configurable
+		return other.hostname.equals(hostname);
 	}
 
 }

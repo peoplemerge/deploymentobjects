@@ -44,6 +44,11 @@ public class ZookeeperPersistence implements Persistence, Watcher {
 	private ZooKeeper zk;
 	private String rootZnode = "/ngds";
 	private boolean recurse = true;
+	public class ZookeeperPersistenceException extends PersistenceException{
+		public ZookeeperPersistenceException(Exception e){
+			super(e);
+		}
+	}
 
 	/*
 	 * no good reason to enable these methods yet 
@@ -70,7 +75,7 @@ public class ZookeeperPersistence implements Persistence, Watcher {
 		zk = new ZooKeeper(zookeeperConnectString, 3000, this);
 	}
 
-	public Composite retrieve(String key) {
+	public Composite retrieve(String key) throws ZookeeperPersistenceException{
 		Stat stat = null;
 		String path = rootZnode + "/" + key;
 		try {
@@ -88,14 +93,16 @@ public class ZookeeperPersistence implements Persistence, Watcher {
 		} catch (KeeperException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		}
-		return null;
+		//return null;
 	}
 
-	public void save(Composite element) {
+	public void save(Composite element) throws ZookeeperPersistenceException {
 		try {
 			Stat stat = zk.exists(rootZnode + "/" + element.getKey(), false);
 			if (stat == null) {
@@ -115,14 +122,16 @@ public class ZookeeperPersistence implements Persistence, Watcher {
 		} catch (KeeperException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		}
 
 	}
 
-	public void watchData(String key, Watcher observer) {
+	public void watchData(String key, Watcher observer) throws ZookeeperPersistenceException {
 		try {/*
 			 * zk.create(rootZnode + "/" +
 			 * key,"".getBytes(),Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -134,14 +143,16 @@ public class ZookeeperPersistence implements Persistence, Watcher {
 		} catch (KeeperException e) {
 			// TODO Here we are swallowing the exceptions. FIXME!
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		}
 
 	}
 
-	public List<String> watchChildren(Composite composite, Watcher observer) {
+	public List<String> watchChildren(Composite composite, Watcher observer) throws ZookeeperPersistenceException {
 		try {/*
 			 * zk.create(rootZnode + "/" +
 			 * key,"".getBytes(),Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -151,15 +162,17 @@ public class ZookeeperPersistence implements Persistence, Watcher {
 		} catch (KeeperException e) {
 			// TODO Here we are swallowing the exceptions. FIXME!
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		}
-		return new ArrayList<String>();
+		//return new ArrayList<String>();
 
 	}
 
-	public void delete(Composite toDelete) {
+	public void delete(Composite toDelete) throws ZookeeperPersistenceException {
 		try {
 			if (recurse) {
 				// annihilate all ancestors
@@ -173,9 +186,11 @@ public class ZookeeperPersistence implements Persistence, Watcher {
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		} catch (KeeperException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw (new ZookeeperPersistenceException(e));
 		}
 	}
 

@@ -5,33 +5,35 @@ import java.util.List;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence.ZookeeperPersistenceException;
 
-public class HostWatcher implements Watcher{
+public class EventWatcher implements Watcher{
 
-	public interface HostAppears{
+	public interface EventAppears{
 		/**
 		 * Callback to calling method
 		 * @param hostname
 		 * @param ip
 		 */
-		public void nodeAppears(Host appeared);
+		public void eventAppears(Composite appeared);
 
 	}
 	
-	private HostAppears callback;
+	private EventAppears callback;
 	private ZookeeperPersistence zk;
+	private String jobName;
 	
-	public HostWatcher(HostAppears callback, ZookeeperPersistence zk){
+	public EventWatcher(EventAppears callback, ZookeeperPersistence zk, String jobName){
 		this.callback = callback;
 		this.zk = zk;
-		watchHosts();
+		this.jobName = jobName;
+		List<String> existing = watchJob();
+		previousEvents.addAll(existing);
 	}
-	private List<String> watchHosts(){
+	private List<String> watchJob(){
 		try {
-			return zk.watchChildren(new Composite("hosts", ""), this);
+			return zk.watchChildren(new Composite("jobs/" + jobName, ""), this);
 		} catch (ZookeeperPersistenceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -39,16 +41,17 @@ public class HostWatcher implements Watcher{
 		}
 	}
 	
-	List<String> previousHosts = new ArrayList<String>();
+	List<String> previousEvents = new ArrayList<String>();
 	
 	@Override
 	public synchronized void process(WatchedEvent event) {
-		watchHosts();
-		List<String> allChildren = watchHosts();
-		for(String host : allChildren){
-			if(!previousHosts.contains(host)){
-				previousHosts.add(host);
-				String path = "hosts/" + host;
+		System.out.println("EventWatcher got WatchedEvent: " + event);
+		watchJob();
+		List<String> allChildren = watchJob();
+		for(String childEvent : allChildren){
+			if(!previousEvents.contains(childEvent)){
+				previousEvents.add(childEvent);
+				String path = "jobs/" + jobName + "/" + childEvent;
 				Composite composite;
 				try {
 					composite = zk.retrieve(path);
@@ -57,8 +60,9 @@ public class HostWatcher implements Watcher{
 					e.printStackTrace();
 					continue;
 				}
-				Host equivalent = new Host(composite);
-				callback.nodeAppears(equivalent);
+				// TODO map DomainEvent from this Composite.  Serialization and deserialization needs to be done
+				//Host equivalent = new Host(composite);
+				callback.eventAppears(composite);
 			}
 		}
 	}

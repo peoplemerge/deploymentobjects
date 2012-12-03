@@ -41,7 +41,7 @@ import org.deploymentobjects.core.domain.shared.EventPublisher;
 import org.deploymentobjects.core.domain.shared.DomainEvent.EventType;
 import org.deploymentobjects.core.infrastructure.execution.LibvirtAdapter;
 
-public class Hypervisor extends Host implements
+public class Hypervisor implements
 		DomainSubscriber<EnvironmentEvent>, HostPool {
 
 	private ControlsHosts controller;
@@ -49,6 +49,7 @@ public class Hypervisor extends Host implements
 	private String userAt = "";
 	private EventPublisher publisher;
 	private Dispatchable dispatch;
+	private Host dom0;
 
 	public enum HypervisorType implements EventType {
 		REQUESTED, HOST_BUILT, ALL_HOSTS_BUILT, BLOCK_UNTIL_HOST_STOPPED, HOST_STOPPED, BLOCK_UNTIL_HOST_STARTED, HOST_STARTED
@@ -56,7 +57,7 @@ public class Hypervisor extends Host implements
 
 	private synchronized ControlsHosts getController() {
 		if (controller == null) {
-			controller = new LibvirtAdapter("qemu+ssh://" + getHostname()
+			controller = new LibvirtAdapter("qemu+ssh://" + dom0.getHostname()
 					+ "/system?socket=/var/run/libvirt/libvirt-sock");
 		}
 		return controller;
@@ -75,7 +76,7 @@ public class Hypervisor extends Host implements
 			return this;
 		}
 
-		public HostPool build() {
+		public Hypervisor build() {
 			hypervisor.publisher
 					.addSubscriber(hypervisor, new EnvironmentEvent.Builder(
 							HypervisorType.REQUESTED, null).build());
@@ -86,7 +87,7 @@ public class Hypervisor extends Host implements
 
 	private Hypervisor(EventPublisher publisher, String hostname,
 			Storage storage, Dispatchable dispatch) {
-		super(hostname);
+		this.dom0 = new Host(hostname);
 		this.publisher = publisher;
 		this.storage = storage;
 		this.dispatch = dispatch;
@@ -94,7 +95,7 @@ public class Hypervisor extends Host implements
 
 	// TODO consider pushing up Storage constructor
 	public Hypervisor(String hostname, Storage storage) {
-		super(hostname);
+		this.dom0 = new Host(hostname);
 		this.storage = storage;
 	}
 
@@ -146,24 +147,13 @@ public class Hypervisor extends Host implements
 
 	}
 
-	public BlockingEventStep buildStepForCreating(Environment environment) {
-		EnvironmentEvent eventToSend = new EnvironmentEvent.Builder(
-				HypervisorType.REQUESTED, environment).build();
-		EnvironmentEvent waitingFor = new EnvironmentEvent.Builder(
-				HypervisorType.ALL_HOSTS_BUILT, environment).build();
-
-		BlockingEventStep step = BlockingEventStep.factory(publisher,
-				eventToSend, waitingFor);
-		return step;
-
-	}
 
 	public BlockingEventStep buildStepForStartingHost(Environment environment,
 			Host host) {
 		EnvironmentEvent eventToSend = new EnvironmentEvent.Builder(
-				HypervisorType.REQUESTED, environment).withHost(host).build();
+				HypervisorType.BLOCK_UNTIL_HOST_STARTED, environment).withHost(host).build();
 		EnvironmentEvent waitingFor = new EnvironmentEvent.Builder(
-				HypervisorType.ALL_HOSTS_BUILT, environment).withHost(host)
+				HypervisorType.HOST_STARTED, environment).withHost(host)
 				.build();
 
 		BlockingEventStep step = BlockingEventStep.factory(publisher,
@@ -175,6 +165,7 @@ public class Hypervisor extends Host implements
 	private ExecutorService executor = Executors.newCachedThreadPool();
 
 	public void handle(EnvironmentEvent event) {
+		/*
 		if (event.type == HypervisorType.REQUESTED) {
 			for (Host host : event.environment.getHosts()) {
 				provisionHost(host);
@@ -188,7 +179,7 @@ public class Hypervisor extends Host implements
 					HypervisorType.ALL_HOSTS_BUILT, event.environment).build();
 
 			publisher.publish(hostsBuiltEvent);
-		}
+		}*/
 		if (event.type == HypervisorType.BLOCK_UNTIL_HOST_STOPPED) {
 			final Host host = event.getHost();
 			final Environment environment = event.environment;
@@ -197,7 +188,7 @@ public class Hypervisor extends Host implements
 				public void run() {
 					pollForDomainToStop(host.getHostname(), 500, 600000);
 					EnvironmentEvent hostStoppedEvent = new EnvironmentEvent.Builder(
-							HypervisorType.HOST_BUILT, environment).withHost(
+							HypervisorType.HOST_STOPPED, environment).withHost(
 							host).build();
 					publisher.publish(hostStoppedEvent);
 				}
@@ -228,14 +219,14 @@ public class Hypervisor extends Host implements
 
 	// TODO encapsulate better. This domain class is anemic!
 	@Override
-	public Executable createStep(Type type, Host host) {
+	public Executable createStep(Host.Type type, Host host) {
 		// TODO Critical - this is a big hack hardcoding these commands here.
 		// They should really come from the grammar.
 		Script command = new Script("/mnt/media/software/kickstart/launch.sh "
 				+ host.getHostname() + " " + storage.getMountPoint());
 
 		DispatchableStep step = DispatchableStep.factory(publisher, command,
-				host, dispatch);
+				dom0, dispatch);
 		return step;
 	}
 

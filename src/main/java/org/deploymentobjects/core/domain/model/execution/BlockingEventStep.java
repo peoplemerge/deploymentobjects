@@ -47,7 +47,7 @@ public class BlockingEventStep extends Executable implements DomainSubscriber<Do
 	}
 	
 	public String toString(){
-		return "block on " + waitingFor.getClass().getSimpleName() + " following " + toSend.getClass().getSimpleName();
+		return "block on " + waitingFor + " following " + toSend;
 	}
 
 }

@@ -8,7 +8,7 @@ class hosts {
         host {'puppetmaster1.peoplemerge.com':
                 ensure => present,
                 host_aliases => ['puppetmaster1'],
-                ip => '192.168.10.137'
+                ip => '192.168.10.112'
         }
         host {'refactor5test1.peoplemerge.com':
                 ensure => present,

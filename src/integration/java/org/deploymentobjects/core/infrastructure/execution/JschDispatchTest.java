@@ -5,6 +5,8 @@ import junit.framework.Assert;
 
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.model.execution.DispatchEvent;
+import org.deploymentobjects.core.domain.model.execution.DispatchableStep;
+import org.deploymentobjects.core.domain.model.execution.ExitCode;
 import org.deploymentobjects.core.domain.model.execution.Script;
 import org.deploymentobjects.core.domain.model.execution.DispatchableStep.DispatchEventType;
 import org.deploymentobjects.core.domain.shared.EventPublisher;
@@ -19,8 +21,14 @@ public class JschDispatchTest {
 
 	private static String host = "localhost";
 
-	@Test
-	public void listDirectory() throws Exception {
+	private static String username = System.getProperty("user.name");
+	private static EventStore eventStore = new InMemoryEventStore();
+	private static EventPublisher publisher = new EventPublisher(eventStore);
+
+	private static JschDispatch jsch = new JschDispatch(publisher, username);
+	private Host target = new Host("localhost");
+
+	static{
 		Logger jschLogger = new Logger() {
 			public boolean isEnabled(int level) {
 				return true;
@@ -31,20 +39,20 @@ public class JschDispatchTest {
 			}
 		};
 		JSch.setLogger(jschLogger);
+	}
+	
+	@Test
+	public void listDirectory() throws Exception {
+		
 		// this should work if the user has set a private key to "ssh localhost"
 		// without a password.
-		String username = System.getProperty("user.name");
-		EventStore eventStore = new InMemoryEventStore();
-		EventPublisher publisher = new EventPublisher(eventStore);
-
-		JschDispatch jsch = new JschDispatch(publisher, username);
 		
 		// list the 'ls' command. Should work on every *nix AFAIK
 		String commandStr = "/bin/ls /bin/ls"; 
 
-		Script command = new Script(commandStr); 
+		Script command = new Script(commandStr);
 		DispatchEvent event = new DispatchEvent(DispatchEventType.DISPATCH_REQUESTED, jsch, command,
-		new Host("localhost"));
+		target);
 		jsch.dispatch(event);
 		
 		System.out.println(eventStore);
@@ -61,4 +69,12 @@ public class JschDispatchTest {
 	
 	//TODO test nonzero retval and failure conditions!
 	
+	@Test
+	public void testDispatchableStep(){
+		String commandStr = "/bin/ls /bin/ls"; 
+		Script command = new Script(commandStr);
+		DispatchableStep step = DispatchableStep.factory(publisher, command, target, jsch);
+		ExitCode code = step.execute();
+		Assert.assertEquals(ExitCode.SUCCESS, code);
+	}
 }

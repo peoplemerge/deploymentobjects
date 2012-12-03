@@ -18,4 +18,11 @@ public class Script extends Executable{
 		// Should probably run a local script here.
 		return null;
 	}
+	
+	public boolean equals(Object o){
+		if(o.getClass() == getClass()){
+			return ((Script)o).contents.equals(contents);
+		}
+		return false;
+	}
 }

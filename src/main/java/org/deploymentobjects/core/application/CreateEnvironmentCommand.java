@@ -159,56 +159,61 @@ public class CreateEnvironmentCommand implements CreatesJob {
 
 	}
 
-	private long startTime;
+	//private long startTime;
 
 	public Job create() {
 		
 		SequentialSteps sequence = new SequentialSteps(publisher);
-		Job job = new Job(publisher, sequence);
 		
 		PersistStep persistStep = new PersistStep(repo, publisher, environment);
 		sequence.add(persistStep);
 
 		
-		ConcurrentSteps concurrent = new ConcurrentSteps(publisher);
+		//ConcurrentSteps concurrent = new ConcurrentSteps(publisher);
 		
 		
 		
 		for(Host host : environment.getHosts()){
-			// TODO refactor SSH so JSCH does this...  Dispatchable
 			
-
+			Executable writeKickstart = kickstartServer.buildStepFor(environment, host);
 			Executable create = host.getSource().createStep(host.getType(),host);
 			Executable block = host.getSource().buildStepForHostToStop(environment, host);
 			Executable start = host.getSource().buildStepForStartingHost(environment, host);
 			Executable hostRestarted = repo.buildStepToBlockUntilProvisioned(environment);
 			Executable configMgtStep = configurationManagement.postCompleteStep(host);
-			
+			/*
 			SequentialSteps blockAndStart = new SequentialSteps(publisher);
-			
+			blockAndStart.add(writeKickstart);
 			blockAndStart.add(create);
 			blockAndStart.add(block);
 			blockAndStart.add(start);
 			blockAndStart.add(hostRestarted);
 			blockAndStart.add(configMgtStep);
-
-			concurrent.add(blockAndStart);
-
+*/
+			//concurrent.add(blockAndStart);
+			sequence.add(writeKickstart);
+			sequence.add(create);
+			sequence.add(block);
+			sequence.add(start);
+			sequence.add(hostRestarted);
+			sequence.add(configMgtStep);
 		}
-		sequence.add(concurrent);
+		//sequence.add(concurrent);
+		//sequence.add(blockAndStart);
 		Executable namingServiceStep = namingService.buildStepToUpdate(publisher, repo);
 		sequence.add(namingServiceStep);
 
-		DispatchableStep configStep = configurationManagement.newEnvironment(repo);
+		Executable configStep = configurationManagement.newEnvironment(repo);
 		sequence.add(configStep);
 		ConcurrentSteps configSteps = new ConcurrentSteps(publisher);
 		
 		for (Host host : environment.getHosts()) {
-			DispatchableStep puppetCatalogStep = configurationManagement.nodeProvisioned(host);
+			Executable puppetCatalogStep = configurationManagement.nodeProvisioned(host);
 			configSteps.add(puppetCatalogStep);
 		}
 		sequence.add(configSteps);
 		
+		Job job = new Job(publisher, sequence, "CreateEnvironment-" + environmentName);
 		return job;
 	}
 

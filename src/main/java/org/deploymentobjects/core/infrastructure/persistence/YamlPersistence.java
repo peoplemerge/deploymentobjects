@@ -35,6 +35,12 @@ import org.yaml.snakeyaml.Yaml;
 
 public class YamlPersistence implements Persistence{
 
+	private class YamlPersistenceException extends PersistenceException{
+		public YamlPersistenceException(Exception e){
+			super(e);
+		}
+	}
+	
 	private Yaml yaml = new Yaml();
 	private String contents = "";
 	private File yamlFile;
@@ -55,9 +61,14 @@ public class YamlPersistence implements Persistence{
 		}
 	}
 
-	public Composite retrieve(String key) throws IOException {
+	public Composite retrieve(String key) throws YamlPersistenceException  {
 		if(yamlFile != null){
-			contents = FileUtils.readFileToString(yamlFile);
+			try {
+				contents = FileUtils.readFileToString(yamlFile);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				throw new YamlPersistenceException(e);
+			}
 		}
 		Map map = (Map) yaml.load(contents);
 		String data =  map.get(key).toString();
@@ -65,15 +76,23 @@ public class YamlPersistence implements Persistence{
 		return retval;
 	}
 
-	public synchronized void save(Composite composite) throws IOException {
+	public synchronized void save(Composite composite) throws YamlPersistenceException {
 		if(yamlFile != null){
-			contents = FileUtils.readFileToString(yamlFile);
+			try {
+				contents = FileUtils.readFileToString(yamlFile);
+			} catch (IOException e) {
+				throw new YamlPersistenceException(e);
+			}
 		}
 		Map map = (Map) yaml.load(contents);
 		map.put(composite.getKey(), composite.getValue());
 		contents = yaml.dump(map);
 		if(yamlFile != null){
-			FileUtils.writeStringToFile(yamlFile, contents);
+			try {
+				FileUtils.writeStringToFile(yamlFile, contents);
+			} catch (IOException e) {
+				throw new YamlPersistenceException(e);
+			}
 		}
 
 	}

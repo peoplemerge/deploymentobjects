@@ -28,9 +28,13 @@ package org.deploymentobjects.core.infrastructure.persistence;
 
 public interface Persistence {
 
-	
+	public class PersistenceException extends Exception{
+		public PersistenceException(Exception e){
+			super(e);
+		}
+	}
 	//TODO make more precise exceptions
-	public void save(Composite element) throws Exception;
-	public Composite retrieve(String key) throws Exception;
+	public void save(Composite element) throws PersistenceException;
+	public Composite retrieve(String key) throws PersistenceException;
 	
 }

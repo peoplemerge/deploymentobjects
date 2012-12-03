@@ -40,11 +40,12 @@ public class ScriptedCommand implements CreatesJob {
 	private Script body;
 	private EventPublisher publisher;
 	private DispatchableStep step;
+	private Host host;
 
 	public ScriptedCommand(EventPublisher publisher, String body, Host target, Dispatchable dispatch){
 		Script command = new Script(body);
 		this.step = DispatchableStep.factory(publisher, command, target, dispatch);
-
+		this.host = host;
 	}
 
 	public Script getBody() {
@@ -78,7 +79,7 @@ public class ScriptedCommand implements CreatesJob {
 
 	@Override
 	public Job create() {
-		Job job = new Job(publisher, step);
+		Job job = new Job(publisher, step, "Run-Script-"+body.hashCode()+"-on-"+host.getHostname());
 		return job;
 	}
 

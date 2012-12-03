@@ -123,7 +123,7 @@ public class DeployApplicationCommand implements CreatesJob {
 	@Override
 	public Job create() {
 		
-		Job job = new Job(publisher, steps);
+		Job job = new Job(publisher, steps, "DeployApplication-"+appName+"-to-"+environmentName);
 		return job;
 	}
 

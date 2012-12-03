@@ -12,6 +12,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
+import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence.ZookeeperPersistenceException;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
@@ -27,7 +28,7 @@ public class ZookeeperIntegrationTest {
 	ZookeeperPersistence repo;
 
 	@Test
-	public void testDataSaved() {
+	public void testDataSaved() throws ZookeeperPersistenceException {
 		// TODO consider if key/value is sufficient
 		// create an node with path /testing/simple with data "sample data"
 		String expected = "sample data";
@@ -43,7 +44,7 @@ public class ZookeeperIntegrationTest {
 	
 
 	@Test
-	public void testNestedDataSaved() {
+	public void testNestedDataSaved() throws ZookeeperPersistenceException {
 		// TODO consider if key/value is sufficient
 		// create an node with path /testing/simple with data "sample data"
 		String expected = "sample data";
@@ -76,8 +77,7 @@ public class ZookeeperIntegrationTest {
 	}
 
 	@Test
-	public void testWatcherCalledOnDataChange() throws InterruptedException,
-			KeeperException {
+	public void testWatcherCalledOnDataChange() throws  ZookeeperPersistenceException, InterruptedException {
 		// create an node with path /testing/watch with data "before"
 		String before = "before";
 		String key = "watchertest";
@@ -102,7 +102,7 @@ public class ZookeeperIntegrationTest {
 
 	@Test
 	public void testWatcherCalledOnChildrenAddedAndSaved()
-			throws InterruptedException, KeeperException {
+			throws InterruptedException, ZookeeperPersistenceException {
 		// create an node with path /testing/watch with data "before"
 
 		String data = "before";
@@ -130,7 +130,7 @@ public class ZookeeperIntegrationTest {
 
 	@Test
 	public void testWatcherCalledOnChildrenAddedParentSaved()
-			throws InterruptedException, KeeperException {
+			throws InterruptedException, ZookeeperPersistenceException {
 		// create an node with path /testing/watch with data "before"
 
 		String data = "before";

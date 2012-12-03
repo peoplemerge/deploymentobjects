@@ -27,12 +27,13 @@ package org.deploymentobjects.core.domain.model.execution;
 
 import java.util.List;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.deploymentobjects.core.domain.model.environment.Host;
 import org.deploymentobjects.core.domain.shared.DomainSubscriber;
 import org.deploymentobjects.core.domain.shared.EventPublisher;
 import org.deploymentobjects.core.domain.shared.DomainEvent.EventType;
 
-public class DispatchableStep extends Executable implements DomainSubscriber<DispatchEvent> {
+public class DispatchableStep extends Executable implements DomainSubscriber<DispatchEvent>, Comparable {
 
 	private Dispatchable dispatchable;
 	private AcceptsCommands target;
@@ -40,6 +41,7 @@ public class DispatchableStep extends Executable implements DomainSubscriber<Dis
 	private EventPublisher publisher;
 	private BlockingEventStep blockingEventStep;
 	private DispatchEvent waitingFor;
+	private DispatchEvent eventToSend;
 	private String output = "";
 
 	public String getOutput() {
@@ -70,6 +72,7 @@ public class DispatchableStep extends Executable implements DomainSubscriber<Dis
 
 	private DispatchableStep(EventPublisher publisher,
 			DispatchEvent eventToSend, DispatchEvent waitingFor) {
+		this.eventToSend = eventToSend;
 		blockingEventStep = BlockingEventStep.factory(publisher, eventToSend, waitingFor);
 		this.dispatchable = eventToSend.dispatchable;
 		// TODO is this cast necessary?
@@ -80,8 +83,8 @@ public class DispatchableStep extends Executable implements DomainSubscriber<Dis
 	}
 
 	public void handle(DispatchEvent event) {
-		System.err.println(event.getOutput());
-		if (event.type == DispatchEventType.DISPATCH_REQUESTED) {
+		System.out.println("DispatchableStep got: " + event.type);
+		if (event.sameEventAs(eventToSend)) {
 			dispatchable.dispatch(event);
 			publisher.publish(waitingFor);
 		}/*else if (event.type == DispatchEventType.DISPATCH_COMPLETED){
@@ -105,7 +108,7 @@ public class DispatchableStep extends Executable implements DomainSubscriber<Dis
 	}
 
 	public String toString() {
-		if (output == null) {
+		if (output == null || output.equals("")) {
 			return "Running: " + command + " on " + target;
 		} else {
 			return "Ran: " + command + " on " + target + " result: " + output;
@@ -132,12 +135,17 @@ public class DispatchableStep extends Executable implements DomainSubscriber<Dis
 		}
 		return builder.isEquals();
 	}
-
+*/
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(1245737, 534515).append(command).append(
 				target).append(output).toHashCode();
 	}
-*/
+
+
+	@Override
+	public int compareTo(Object o) {
+		return (o.hashCode() > hashCode())?-1:1;
+	}
 
 }

@@ -16,6 +16,7 @@ import org.deploymentobjects.core.domain.shared.DomainSubscriber;
 import org.deploymentobjects.core.domain.shared.EventPublisher;
 import org.deploymentobjects.core.domain.shared.DomainEvent.EventType;
 import org.deploymentobjects.core.infrastructure.persistence.Composite;
+import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence.ZookeeperPersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,14 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository
 		if (!nodesWithoutRoles.equals("")) {
 			for (String nodeWithoutRole : nodesWithoutRoles.split(SEPERATOR)) {
 				String key = hostsKey + "/" + nodeWithoutRole;
-				Composite hostComposite = persistence.retrieve(key);
+				Composite hostComposite;
+				try {
+					hostComposite = persistence.retrieve(key);
+				} catch (ZookeeperPersistenceException e) {
+					Host node = new Host(nodeWithoutRole);
+					env.addHost(node);
+					continue;
+				}
 				Host node = new Host(nodeWithoutRole, hostComposite.getValue());
 				Composite domainname = hostComposite.getChild(key
 						+ "/domainname");
@@ -87,7 +95,14 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository
 				String hostsStr = roleComposite.getValue();
 				for (String hostName : hostsStr.split(SEPERATOR)) {
 					String key = hostsKey + "/" + hostName;
-					Composite hostComposite = persistence.retrieve(key);
+					Composite hostComposite;
+					try {
+						hostComposite = persistence.retrieve(key);
+					} catch (ZookeeperPersistenceException e) {
+						Host node = new Host(hostName);
+						env.addHost(node);
+						continue;
+					}
 					if (env.containsHostNamed(hostName)) {
 						Host node = env.getHostByName(hostName);
 						node.addRole(role);
@@ -167,19 +182,20 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository
 					e.printStackTrace();
 				}
 
+				if (node.getDomainname() != null) {
+					Composite domainname = new Composite(hostsKey + "/"
+							+ node.getHostname() + "/domainname", node
+							.getDomainname());
+					try {
+						persistence.save(domainname);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
 			}
 
-			if (node.getDomainname() != null) {
-				Composite domainname = new Composite(hostsKey + "/"
-						+ node.getHostname() + "/domainname", node
-						.getDomainname());
-				try {
-					persistence.save(domainname);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 		}
 		Composite environment = new Composite(environmentsStr + "/"
 				+ env.getName(), hostsWithoutRole);
@@ -212,9 +228,7 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository
 						ZookeeperEnvironmentEventType.HOST_APPEARED,
 						environment).withHost(appeared).build();
 				if(!isListening){
-					//TODO consider putting this block in the constructor or factory
-					publisher.addSubscriber(this, waitingFor);
-					isListening = true;
+					//TODO consider putting this blocw
 				}
 				publisher.publish(waitingFor);
 			}
