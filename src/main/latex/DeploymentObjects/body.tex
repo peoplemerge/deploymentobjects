@@ -25,7 +25,7 @@ environment differs from the production environment, resulting in a higher
 frequency of errors when software is released, causing various forms of pain to
 the organization.
 
-\chapter{Background}
+\chapter{BACKGROUND}
 
 \section{Existing Methodologies}
 \subsection{Manual}
@@ -351,6 +351,44 @@ REPOSITORY and an INSTALLATION PROCEDURE which loads an ARTIFACT from a
 REPOSITORY onto a HOST by its ROLE.
 An ENVIRONMENT built from SNAPSHOT STORAGE can be reverted to it’s original
 STATE.
+
+\chapter{USAGE}
+
+\section{Setup}
+
+There are a number of configurations with which to run Deployment Objects, and
+the simplest one that reasonably represented a wide variety of organizations was
+chosen.  To arrive at the starting point for running the software, the user must
+set up infrastructure components for shared storage, configuration management,
+zookeeper, (TODO enumerate others).
+
+\subsection{Puppet}
+
+To set up the puppet server on CentOS 5.x, the user should run the following:
+\vspace{.15in}
+
+\noindent\texttt{%
+  \ssp % \ssp inside the { } makes the change temporary
+sudo rpm -ivh http://yum.puppetlabs.com/el/5/products/i386/puppetlabs-release-5-6.noarch.rpm\\
+sudo yum install puppet-server
+}
+
+\noindent
+The command will prompt the user that the packages to be installed are correct
+and the vendor GPG keys may be imported.
+
+(TODO include output from this command in an appendix; located in
+centos5-puppetinstall.txt)
+
+(TODO ensure host key present)
+
+Next, users should create puppet classes to reflect their desired environment. 
+A sample follows.  (TODO include roles.pp)
+
+
+\subsection{Zookeeper}
+
+
 
 \chapter{RESULTS}
 
