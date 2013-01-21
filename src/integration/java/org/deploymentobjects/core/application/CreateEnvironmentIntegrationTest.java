@@ -30,7 +30,7 @@ public class CreateEnvironmentIntegrationTest {
 
 		EventStore eventStore = new InMemoryEventStore();
 		EventPublisher publisher = new EventPublisher(eventStore);
-		EnvironmentRepository repo = new ZookeeperEnvironmentRepository(
+		EnvironmentRepository repo =  ZookeeperEnvironmentRepository.factory(
 				new ZookeeperPersistence("ino:2181"), publisher);
 		Dispatchable dispatch = new JschDispatch(publisher, "root");
 		ConfigurationManagement configMgt = new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com",
@@ -38,7 +38,7 @@ public class CreateEnvironmentIntegrationTest {
 
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
 				"puppet2env", repo, publisher).withEventStore(eventStore).withNodes(1,
-						Type.SMALL, new Hypervisor.Builder(publisher, "kowalski", new NfsMount(), dispatch).withUserName("root").build()).withConfigurationManagement(
+						Type.SMALL, new Hypervisor.Builder(publisher, "kowalski", new NfsMount("192.168.0.4", "/media"), dispatch).withUserName("root").build()).withConfigurationManagement(
 						configMgt).withDispatch(
 					dispatch).build();
 		Job saga = command.create();

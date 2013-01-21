@@ -80,7 +80,7 @@ options{
 			if (persistence instanceof ZookeeperPersistence) {
 				// Yes, this violates OCP, but this is an assembler and probably
 				// appropriate in this case
-				environmentRepository = new ZookeeperEnvironmentRepository(
+				environmentRepository = ZookeeperEnvironmentRepository.factory(
 						(ZookeeperPersistence) persistence, getPublisher());
 			}
 		}
@@ -126,8 +126,8 @@ STRING: '"' (~('\\'|'"') )* '"';
 
 //Host_APP_MAPPING :  
 
-node_classifier returns [HostPool pool] : 'ldap' | 'ec2' | 'dom0' ID {$pool = new Hypervisor($ID.text, new NfsMount());} | 'zookeeper' ;
-
+node_classifier returns [HostPool pool] : 'ldap' | 'ec2' | 'dom0' ID {$pool = new Hypervisor($ID.text, new NfsMount("192.168.0.4","/media"));} | 'zookeeper' ;
+//TODO parameterize the shared storage
 capability returns [Host.Type type] : 'small' {$type = Host.Type.getSmall();} | 'large' | 'database' ;
 
 FABRIC : 'fabric';

@@ -32,16 +32,16 @@ public class KickstartServiceTest {
 
 		String tempDir = new File(File.createTempFile("test", ".ks")
 				.getParent()).getAbsolutePath();
-		Storage storage = new NfsMount();
+		Storage storage = new NfsMount("192.168.0.4", "/media");
 		String hostname = "test1";
-		Host host = new Host(hostname, "peoplemerge.com","192.168.10.101");
+		Host host = new Host(hostname, "peoplemerge.com","192.168.0.4");
 		Environment environment = new Environment("test");
 		
 		environment.add(host);
 		KickstartTemplateService server = KickstartTemplateService.factory(
 				publisher, environment, tempDir, storage, new Puppet(publisher,
 						new Host("puppetmaster1", "peoplemerge.com",
-								"192.168.10.137"), dispatch));
+								"192.168.0.7"), dispatch));
 		Map<String, Object> vars = new HashMap<String, Object>();
 		vars.put("hostname", hostname);
 		BlockingEventStep buildStepFor = server.buildStepFor(environment, host);

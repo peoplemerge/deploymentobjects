@@ -33,7 +33,7 @@ public class ZookeeperEnvironmentRepositoryTest {
 	private EventStore store = mock(EventStore.class);
 	private EventPublisher publisher = new EventPublisher(store);
 
-	private EnvironmentRepository repo = new ZookeeperEnvironmentRepository(
+	private EnvironmentRepository repo =  ZookeeperEnvironmentRepository.factory(
 			mock, publisher);
 
 	@Test
@@ -392,7 +392,7 @@ public class ZookeeperEnvironmentRepositoryTest {
 
 	@Test
 	public void zookeeperNodeAppears() throws Exception {
-		// When a node gets created on the dom0, after rebooting, will
+		// When a node gets created on the dom0, after rebooting, it will
 		// create the zookeeper nodes /ngds/hosts/hostname the ip of the
 		// system that has just booted in the data of the node. We want a
 		// watcher to be called allowing the processing to continue.

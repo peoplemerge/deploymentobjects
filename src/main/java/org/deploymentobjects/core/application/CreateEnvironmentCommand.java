@@ -79,7 +79,8 @@ public class CreateEnvironmentCommand implements CreatesJob {
 		// "Create a new environment called development using 1 small nodes from dom0."
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand();
 
-		public Builder(String environmentName, EnvironmentRepository repo, EventPublisher publisher) {
+		public Builder(String environmentName, EnvironmentRepository repo,
+				EventPublisher publisher) {
 			command.environmentName = environmentName;
 			command.repo = repo;
 			command.publisher = publisher;
@@ -132,8 +133,8 @@ public class CreateEnvironmentCommand implements CreatesJob {
 
 		public CreateEnvironmentCommand build() {
 			if (command.dispatchable == null) {
-				command.dispatchable = new JschDispatch( command.publisher, System
-						.getProperty("user.name"));
+				command.dispatchable = new JschDispatch(command.publisher,
+						System.getProperty("user.name"));
 			}
 			if (command.configurationManagement == null) {
 				command.configurationManagement = new NoConfigurationManagement();
@@ -143,10 +144,14 @@ public class CreateEnvironmentCommand implements CreatesJob {
 				command.environment.getHosts().addAll(command.nodes);
 			}
 			if (command.kickstartServer == null) {
-				command.kickstartServer = KickstartTemplateService.factory(
-						command.publisher, command.environment,
-						"/mnt/media/software/kickstart", new NfsMount(),
-						command.configurationManagement);
+				command.kickstartServer = KickstartTemplateService
+						.factory(command.publisher, command.environment,
+								"/mnt/media/software/kickstart", new NfsMount(
+										"192.168.0.4", "/media")/*
+																 * TODO better
+																 * param
+																 */,
+								command.configurationManagement);
 			}
 			if (command.namingService == null) {
 				command.namingService = new TemplateHostsFile();
@@ -159,38 +164,39 @@ public class CreateEnvironmentCommand implements CreatesJob {
 
 	}
 
-	//private long startTime;
+	// private long startTime;
 
 	public Job create() {
-		
+
 		SequentialSteps sequence = new SequentialSteps(publisher);
-		
+
 		PersistStep persistStep = new PersistStep(repo, publisher, environment);
 		sequence.add(persistStep);
 
-		
-		//ConcurrentSteps concurrent = new ConcurrentSteps(publisher);
-		
-		
-		
-		for(Host host : environment.getHosts()){
-			
-			Executable writeKickstart = kickstartServer.buildStepFor(environment, host);
-			Executable create = host.getSource().createStep(host.getType(),host);
-			Executable block = host.getSource().buildStepForHostToStop(environment, host);
-			Executable start = host.getSource().buildStepForStartingHost(environment, host);
-			Executable hostRestarted = repo.buildStepToBlockUntilProvisioned(environment);
-			Executable configMgtStep = configurationManagement.postCompleteStep(host);
+		// ConcurrentSteps concurrent = new ConcurrentSteps(publisher);
+
+		for (Host host : environment.getHosts()) {
+
+			Executable writeKickstart = kickstartServer.buildStepFor(
+					environment, host);
+			Executable create = host.getSource().createStep(host.getType(),
+					host);
+			Executable block = host.getSource().buildStepForHostToStop(
+					environment, host);
+			Executable start = host.getSource().buildStepForStartingHost(
+					environment, host);
+			Executable hostRestarted = repo
+					.buildStepToBlockUntilProvisioned(environment);
+			Executable configMgtStep = configurationManagement
+					.postCompleteStep(host);
 			/*
-			SequentialSteps blockAndStart = new SequentialSteps(publisher);
-			blockAndStart.add(writeKickstart);
-			blockAndStart.add(create);
-			blockAndStart.add(block);
-			blockAndStart.add(start);
-			blockAndStart.add(hostRestarted);
-			blockAndStart.add(configMgtStep);
-*/
-			//concurrent.add(blockAndStart);
+			 * SequentialSteps blockAndStart = new SequentialSteps(publisher);
+			 * blockAndStart.add(writeKickstart); blockAndStart.add(create);
+			 * blockAndStart.add(block); blockAndStart.add(start);
+			 * blockAndStart.add(hostRestarted);
+			 * blockAndStart.add(configMgtStep);
+			 */
+			// concurrent.add(blockAndStart);
 			sequence.add(writeKickstart);
 			sequence.add(create);
 			sequence.add(block);
@@ -198,25 +204,27 @@ public class CreateEnvironmentCommand implements CreatesJob {
 			sequence.add(hostRestarted);
 			sequence.add(configMgtStep);
 		}
-		//sequence.add(concurrent);
-		//sequence.add(blockAndStart);
-		Executable namingServiceStep = namingService.buildStepToUpdate(publisher, repo);
+		// sequence.add(concurrent);
+		// sequence.add(blockAndStart);
+		Executable namingServiceStep = namingService.buildStepToUpdate(
+				publisher, repo);
 		sequence.add(namingServiceStep);
 
 		Executable configStep = configurationManagement.newEnvironment(repo);
 		sequence.add(configStep);
 		ConcurrentSteps configSteps = new ConcurrentSteps(publisher);
-		
+
 		for (Host host : environment.getHosts()) {
-			Executable puppetCatalogStep = configurationManagement.nodeProvisioned(host);
+			Executable puppetCatalogStep = configurationManagement
+					.nodeProvisioned(host);
 			configSteps.add(puppetCatalogStep);
 		}
 		sequence.add(configSteps);
-		
-		Job job = new Job(publisher, sequence, "CreateEnvironment-" + environmentName);
+
+		Job job = new Job(publisher, sequence, "CreateEnvironment-"
+				+ environmentName);
 		return job;
 	}
-
 
 	public String toString() {
 		return new ReflectionToStringBuilder(this).toString();

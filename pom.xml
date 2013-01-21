@@ -21,7 +21,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.deploymentobjects</groupId>
-	<artifactId>core</artifactId>
+	<artifactId>deploymentobjects-core</artifactId>
 	<packaging>jar</packaging>
 	<version>0.4</version>
 	<name>Deployment Objects</name>
@@ -132,6 +132,11 @@
 			<artifactId>commons-cli</artifactId>
 			<version>1.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.python</groupId>
+			<artifactId>jython</artifactId>
+			<version>2.5.3</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<pluginManagement>
@@ -169,6 +174,24 @@
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>net.sf.mavenjython</groupId>
+				<artifactId>jython-compile-maven-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jython</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<libraries>
+						<param>nose</param>
+					</libraries>
 				</configuration>
 			</plugin>
 		</plugins>

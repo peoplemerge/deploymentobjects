@@ -29,7 +29,15 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository
 			.getLogger(ZookeeperEnvironmentRepository.class);
 	private EventPublisher publisher;
 
-	public ZookeeperEnvironmentRepository(ZookeeperPersistence persistence,
+	public static ZookeeperEnvironmentRepository factory(ZookeeperPersistence persistence,
+			EventPublisher publisher) {
+		ZookeeperEnvironmentRepository retval = new ZookeeperEnvironmentRepository(persistence, publisher);
+		
+		publisher.addSubscriber(retval,  new EnvironmentEvent.Builder(ZookeeperEnvironmentEventType.HOST_APPEARED,null).build());
+		return retval;
+	}
+	
+	private ZookeeperEnvironmentRepository(ZookeeperPersistence persistence,
 			EventPublisher publisher) {
 		this.persistence = persistence;
 		this.publisher = publisher;
@@ -224,13 +232,13 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository
 
 		for (Environment environment : environmentsToProvision.values()) {
 			if (environment.containsHostNamed(appeared.getHostname())) {
-				EnvironmentEvent waitingFor = new EnvironmentEvent.Builder(
+				EnvironmentEvent hostAppearedEvent = new EnvironmentEvent.Builder(
 						ZookeeperEnvironmentEventType.HOST_APPEARED,
 						environment).withHost(appeared).build();
 				if(!isListening){
 					//TODO consider putting this blocw
 				}
-				publisher.publish(waitingFor);
+				publisher.publish(hostAppearedEvent);
 			}
 		}
 

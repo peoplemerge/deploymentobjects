@@ -40,7 +40,7 @@ public class DeployJenkinsIntegrationTest {
 
 		EventStore eventStore = new InMemoryEventStore();
 		EventPublisher publisher = new EventPublisher(eventStore);
-		EnvironmentRepository repo = new ZookeeperEnvironmentRepository(
+		EnvironmentRepository repo = ZookeeperEnvironmentRepository.factory(
 				new ZookeeperPersistence("ino:2181"), publisher);
 		
 		DeployApplicationCommand cmd = new DeployApplicationCommand.Builder(publisher, 

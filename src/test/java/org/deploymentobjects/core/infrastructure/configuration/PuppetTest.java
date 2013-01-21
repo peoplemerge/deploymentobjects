@@ -42,7 +42,7 @@ public class PuppetTest {
 		String expected = FileUtils.readFileToString(expectedPp);
 
 		Puppet puppet = new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com",
-				"192.168.10.137"), dispatchable);
+				"192.168.0.7"), dispatchable);
 
 
 		// TODO: abstract the puppetmaster too, remove it from template. It's in

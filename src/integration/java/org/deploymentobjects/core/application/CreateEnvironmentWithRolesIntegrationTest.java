@@ -31,13 +31,13 @@ public class CreateEnvironmentWithRolesIntegrationTest {
 		ZookeeperPersistence persistence = new ZookeeperPersistence("ino:2181");
 		EventStore eventStore = new ZookeeperEventStore(persistence);
 		EventPublisher publisher = new EventPublisher(eventStore);
-		EnvironmentRepository repo = new ZookeeperEnvironmentRepository(
+		EnvironmentRepository repo = ZookeeperEnvironmentRepository.factory(
 				persistence, publisher);
 		Dispatchable dispatch = new JschDispatch(publisher, "root");
 		ConfigurationManagement configMgt = new Puppet(publisher, new Host(
-				"puppetmaster1", "peoplemerge.com", "192.168.10.112"), dispatch);
-		Hypervisor hypervisor = new Hypervisor.Builder(publisher, "kowalski",
-				new NfsMount(), dispatch).withUserName("root").build();
+				"puppetmaster1", "peoplemerge.com", "192.168.0.6"), dispatch);
+		Hypervisor hypervisor = new Hypervisor.Builder(publisher, "ino",
+				new NfsMount("192.168.0.4", "/media"), dispatch).withUserName("root").build();
 	    Random randomGenerator = new Random();
 
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
@@ -56,7 +56,7 @@ public class CreateEnvironmentWithRolesIntegrationTest {
 	 * @Test public void createClusterWithRoles() throws Exception {
 	 * 
 	 * CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
-	 * "mock1", new ZookeeperEnvironmentRepository( new
+	 * "mock1", ZookeeperEnvironmentRepository.factory( new
 	 * ZookeeperPersistence("ino:2181"))).withNodes(1, Type.SMALL, new
 	 * Hypervisor("root", "kowalski", new NfsMount()), new
 	 * Role("standard")).withConfigurationManagement( new Puppet(new

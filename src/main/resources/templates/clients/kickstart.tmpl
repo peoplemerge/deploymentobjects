@@ -12,7 +12,7 @@ timezone --utc America/Los_Angeles
 bootloader --location=mbr --driveorder=vda --append="crashkernel=auto rhgb"
 zerombr
 autopart
-logging --host=192.168.10.105
+logging --host=192.168.0.5
 
 repo --name="CentOS"  --baseurl=nfs:$ksmount/software/linux/distributions/centos/6.3/os/i386 --cost=100
 repo --name="PeopleMerge"  --baseurl=nfs:$ksmount/software/rpm/RPMS/i386 --cost=100
@@ -37,8 +37,8 @@ cp /mnt/temp/software/kickstart/createZkNodes.sh /root
 umount /mnt/temp
 
 cat >>/etc/hosts <<EOF
-192.168.10.101  heracles
-192.168.10.105  ino
+192.168.0.4  heracles
+192.168.0.5  ino
 EOF
 
 # TODO this is for zookeeper, we could make this optional someday, replaced with something else.

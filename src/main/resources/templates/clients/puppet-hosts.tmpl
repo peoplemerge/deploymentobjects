@@ -3,12 +3,12 @@ class hosts {
         host {'ino.peoplemerge.com':
                 ensure => present,
                 host_aliases => ['ino'],
-                ip => '192.168.10.105'
+                ip => '192.168.0.5'
         }
         host {'puppetmaster1.peoplemerge.com':
                 ensure => present,
                 host_aliases => ['puppetmaster1'],
-                ip => '192.168.10.137'
+                ip => '192.168.0.7'
         }
 #foreach( $environment in $allenvironments )
 #foreach( $host in $environment.getHosts() )

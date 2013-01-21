@@ -3,12 +3,12 @@ class hosts {
         host {'ino.peoplemerge.com':
                 ensure => present,
                 host_aliases => ['ino'],
-                ip => '192.168.10.105'
+                ip => '192.168.0.5'
         }
         host {'puppetmaster1.peoplemerge.com':
                 ensure => present,
                 host_aliases => ['puppetmaster1'],
-                ip => '192.168.10.112'
+                ip => '192.168.0.7'
         }
         host {'refactor5test1.peoplemerge.com':
                 ensure => present,

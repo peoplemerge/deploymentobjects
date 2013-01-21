@@ -27,17 +27,20 @@ public class HypervisorPublishingTest {
 		
 		Host second = new Host("second.example.com");
 		environment.add(second);
-		new Hypervisor.Builder(publisher, "dummydom0.example.com", new NfsMount(), dispatchable).build();
+		new Hypervisor.Builder(publisher, "dummydom0.example.com", new NfsMount("192.168.0.4", "/media"), dispatchable).build();
 
 		
 		EnvironmentEvent requestevent = new EnvironmentEvent.Builder(Hypervisor.HypervisorType.REQUESTED, environment ).build();
 		publisher.publish(requestevent);
 		verify(store,times(1)).store(eq(requestevent));
 		EnvironmentEvent hostbuiltevent = new EnvironmentEvent.Builder(Hypervisor.HypervisorType.HOST_BUILT, environment ).withHost(first).build();
+		publisher.publish(hostbuiltevent);
 		verify(store,times(1)).store(eq(hostbuiltevent));
 		EnvironmentEvent secondhostbuiltevent = new EnvironmentEvent.Builder(Hypervisor.HypervisorType.HOST_BUILT, environment ).withHost(second).build();
+		publisher.publish(secondhostbuiltevent);
 		verify(store,times(1)).store(eq(secondhostbuiltevent));
 		EnvironmentEvent allhostsbuiltevent = new EnvironmentEvent.Builder(Hypervisor.HypervisorType.ALL_HOSTS_BUILT, environment ).build();
+		publisher.publish(allhostsbuiltevent);
 		verify(store,times(1)).store(eq(allhostsbuiltevent));
 	}
 }

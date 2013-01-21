@@ -1,5 +1,5 @@
 Use jsch dispatch as user root
-Use puppet with puppetmaster on puppetmaster1 peoplemerge.com 192.168.10.137
+Use puppet with puppetmaster on puppetmaster1 peoplemerge.com 192.168.0.6
 Persist with zookeeper with connection string ino:2181
 Create a new environment called rfctr1 using 1 small nodes from dom0 kowalski having roles web
 Execute

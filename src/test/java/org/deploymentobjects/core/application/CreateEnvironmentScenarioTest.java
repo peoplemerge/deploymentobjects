@@ -52,7 +52,7 @@ public class CreateEnvironmentScenarioTest {
 		Host host = new Host("test1", "peoplemerge.com","192.168.10.111");
 		environment.add(host);
 		KickstartTemplateService kickstartServer = KickstartTemplateService.factory(publisher, environment, tempDir,
-				new NfsMount(),new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com", "192.168.10.137"),dispatch));
+				new NfsMount("192.168.0.4", "/media"),new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com", "192.168.10.137"),dispatch));
 		BlockingEventStep fake = mock(BlockingEventStep.class);
 		when(fake.execute()).thenReturn(ExitCode.SUCCESS);
 		when(pool.createStep(any(Host.Type.class), any(Host.class))).thenReturn(fake);
