@@ -20,7 +20,7 @@ public class WatcherTest {
 		ZookeeperPersistence repo = new ZookeeperPersistence("localhost:2181");
 		new HostWatcher(callback, repo);
 		String host = "watchertest".intern();
-		String ip = "192.168.10.111".intern();
+		String ip = "192.168.0.111".intern();
 		Composite composite = new Composite("hosts/" + host, ip);
 		Host node = new Host(composite);
 

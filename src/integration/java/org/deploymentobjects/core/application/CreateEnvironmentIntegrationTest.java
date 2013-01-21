@@ -34,7 +34,7 @@ public class CreateEnvironmentIntegrationTest {
 				new ZookeeperPersistence("ino:2181"), publisher);
 		Dispatchable dispatch = new JschDispatch(publisher, "root");
 		ConfigurationManagement configMgt = new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com",
-		"192.168.10.112"), dispatch);
+		"192.168.0.6"), dispatch);
 
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
 				"puppet2env", repo, publisher).withEventStore(eventStore).withNodes(1,

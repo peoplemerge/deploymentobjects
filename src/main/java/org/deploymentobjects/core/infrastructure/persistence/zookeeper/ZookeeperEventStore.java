@@ -47,7 +47,7 @@ public class ZookeeperEventStore extends ZookeeperRepository implements
 	@Override
 	public EventHistory lookup(String jobName) {
 		EventHistory history = new EventHistory();
-		history.events.add(new UnknownEvent("dummy", "dummy"));
+		//history.events.add(new UnknownEvent("dummy", "dummy"));
 		System.out.println("jobname: " + jobName);
 		String key = jobsKey + "/"+ jobName;
 		Composite envComposite;

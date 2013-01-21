@@ -49,10 +49,10 @@ public class CreateEnvironmentScenarioTest {
 		tempFile.deleteOnExit();
 		String tempDir = new File(tempFile.getParent()).getAbsolutePath();
 		Environment environment = new Environment("test");
-		Host host = new Host("test1", "peoplemerge.com","192.168.10.111");
+		Host host = new Host("test1", "peoplemerge.com","192.168.0.111");
 		environment.add(host);
 		KickstartTemplateService kickstartServer = KickstartTemplateService.factory(publisher, environment, tempDir,
-				new NfsMount("192.168.0.4", "/media"),new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com", "192.168.10.137"),dispatch));
+				new NfsMount("192.168.0.4", "/media"),new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com", "192.168.0.6"),dispatch));
 		BlockingEventStep fake = mock(BlockingEventStep.class);
 		when(fake.execute()).thenReturn(ExitCode.SUCCESS);
 		when(pool.createStep(any(Host.Type.class), any(Host.class))).thenReturn(fake);

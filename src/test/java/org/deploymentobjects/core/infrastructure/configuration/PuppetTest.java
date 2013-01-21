@@ -60,11 +60,11 @@ public class PuppetTest {
 		Role web = new Role("web");
 		Role db = new Role("db");
 		Host refactor5test1 = new Host("refactor5test1", "peoplemerge.com",
-				"192.168.10.146", web);
+				"192.168.0.146", web);
 		Host refactor5test2 = new Host("refactor5test2", "peoplemerge.com",
-				"192.168.10.147", web);
+				"192.168.0.147", web);
 		Host refactor5test3 = new Host("refactor5test3", "peoplemerge.com",
-				"192.168.10.148", db);
+				"192.168.0.148", db);
 		environment.addHost(refactor5test1);
 		environment.addHost(refactor5test2);
 		environment.addHost(refactor5test3);
@@ -84,7 +84,7 @@ public class PuppetTest {
 		String expected = FileUtils.readFileToString(expectedPp);
 
 		Puppet puppet = new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com",
-				"192.168.10.137"), dispatchable);
+				"192.168.0.6"), dispatchable);
 
 		Environment environment = buildEnvironment();
 		List<Environment> environments = new ArrayList<Environment>();
@@ -96,7 +96,7 @@ public class PuppetTest {
 	@Test
 	public void createStep() throws Exception{
 		Puppet puppet = new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com",
-		"192.168.10.137"), dispatchable);
+		"192.168.0.6"), dispatchable);
 
 		File hostsPp = File.createTempFile("hosts", "pp");
 		puppet.hostsPpFile = hostsPp;

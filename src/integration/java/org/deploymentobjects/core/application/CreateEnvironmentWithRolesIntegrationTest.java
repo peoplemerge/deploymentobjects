@@ -61,7 +61,7 @@ public class CreateEnvironmentWithRolesIntegrationTest {
 	 * Hypervisor("root", "kowalski", new NfsMount()), new
 	 * Role("standard")).withConfigurationManagement( new Puppet(new
 	 * Host("puppetmaster1", "peoplemerge.com",
-	 * "192.168.10.137"))).withDispatch( new JschDispatch("root")).build();
+	 * "192.168.0.6"))).withDispatch( new JschDispatch("root")).build();
 	 * ExitCode exit = command.execute(); assertEquals(ExitCode.SUCCESS, exit);
 	 * 
 	 * }

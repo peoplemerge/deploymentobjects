@@ -96,7 +96,7 @@ public class LangTest {
 	}
 	@Test
 	public void createSentenceWithPuppet() throws RecognitionException {
-		String puppet = "Use puppet with puppetmaster on puppetmaster1 peoplemerge.com 192.168.10.250 \n";
+		String puppet = "Use puppet with puppetmaster on puppetmaster1 peoplemerge.com 192.168.0.6 \n";
 		String sentence = puppet + ZOOKEEPER_SENTENCE + "Create a new environment called development using 1 small nodes from dom0 xen0 having roles web db";
 		Program program = Program.factory(sentence);
 		

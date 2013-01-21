@@ -13,16 +13,16 @@ class hosts {
         host {'refactor5test1.peoplemerge.com':
                 ensure => present,
                 host_aliases => ['refactor5test1'],
-                ip => '192.168.10.146'
+                ip => '192.168.0.146'
         }
         host {'refactor5test2.peoplemerge.com':
                 ensure => present,
                 host_aliases => ['refactor5test2'],
-                ip => '192.168.10.147'
+                ip => '192.168.0.147'
         }
         host {'refactor5test3.peoplemerge.com':
                 ensure => present,
                 host_aliases => ['refactor5test3'],
-                ip => '192.168.10.148'
+                ip => '192.168.0.148'
         }
 }
