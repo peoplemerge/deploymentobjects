@@ -34,10 +34,10 @@ public class CreateEnvironmentIntegrationTest {
 				new ZookeeperPersistence("ino:2181"), publisher);
 		Dispatchable dispatch = new JschDispatch(publisher, "root");
 		ConfigurationManagement configMgt = new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com",
-		"192.168.0.6"), dispatch);
+		"192.168.0.7"), dispatch);
 
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
-				"puppet2env", repo, publisher).withEventStore(eventStore).withNodes(1,
+				"puppet2env", "peoplemerge.com", repo, publisher).withEventStore(eventStore).withNodes(1,
 						Type.SMALL, new Hypervisor.Builder(publisher, "kowalski", new NfsMount("192.168.0.4", "/media"), dispatch).withUserName("root").build()).withConfigurationManagement(
 						configMgt).withDispatch(
 					dispatch).build();

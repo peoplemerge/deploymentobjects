@@ -2,7 +2,7 @@ install
 nfs --server=192.168.0.4 --dir=/media/software/linux/distributions/centos/6.3/os/i386
 lang en_US.UTF-8
 keyboard us
-network --onboot yes --device eth0 --mtu=1500 --bootproto dhcp --ipv6 auto --hostname test1
+network --onboot yes --device eth0 --mtu=1500 --bootproto dhcp --ipv6 auto --hostname test1.peoplemerge.com
 rootpw  --iscrypted $6$5LkqInxECgnHsOQC$YpNOLnnls29ngoFVzg2dq6Frnt79fnHk73hcB5RMH/tSuegP9lqKyjfkVz.wikYK5t5AHM.3z3y/Nu.i..Rct0
 reboot
 firewall --service=ssh
@@ -12,7 +12,7 @@ timezone --utc America/Los_Angeles
 bootloader --location=mbr --driveorder=vda --append="crashkernel=auto rhgb"
 zerombr
 autopart
-logging --host=192.168.0.5
+logging --host=192.168.0.5:5544
 
 repo --name="CentOS"  --baseurl=nfs:192.168.0.4:/media/software/linux/distributions/centos/6.3/os/i386 --cost=100
 repo --name="PeopleMerge"  --baseurl=nfs:192.168.0.4:/media/software/rpm/RPMS/i386 --cost=100
@@ -54,6 +54,7 @@ cat >> /etc/puppet/puppet.conf <<EOF
     server = puppetmaster1.peoplemerge.com
 EOF
 
-puppet agent --test
+puppet agent --test &>>/root/puppet-out
+
 
 %end

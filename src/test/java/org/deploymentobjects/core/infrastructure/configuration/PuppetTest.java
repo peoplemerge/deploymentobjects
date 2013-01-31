@@ -84,7 +84,7 @@ public class PuppetTest {
 		String expected = FileUtils.readFileToString(expectedPp);
 
 		Puppet puppet = new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com",
-				"192.168.0.6"), dispatchable);
+				"192.168.0.7"), dispatchable);
 
 		Environment environment = buildEnvironment();
 		List<Environment> environments = new ArrayList<Environment>();
@@ -96,7 +96,7 @@ public class PuppetTest {
 	@Test
 	public void createStep() throws Exception{
 		Puppet puppet = new Puppet(publisher, new Host("puppetmaster1", "peoplemerge.com",
-		"192.168.0.6"), dispatchable);
+		"192.168.0.7"), dispatchable);
 
 		File hostsPp = File.createTempFile("hosts", "pp");
 		puppet.hostsPpFile = hostsPp;

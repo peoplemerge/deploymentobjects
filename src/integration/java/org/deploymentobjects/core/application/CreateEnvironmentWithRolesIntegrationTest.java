@@ -35,13 +35,13 @@ public class CreateEnvironmentWithRolesIntegrationTest {
 				persistence, publisher);
 		Dispatchable dispatch = new JschDispatch(publisher, "root");
 		ConfigurationManagement configMgt = new Puppet(publisher, new Host(
-				"puppetmaster1", "peoplemerge.com", "192.168.0.6"), dispatch);
+				"puppetmaster1", "peoplemerge.com", "192.168.0.7"), dispatch);
 		Hypervisor hypervisor = new Hypervisor.Builder(publisher, "ino",
 				new NfsMount("192.168.0.4", "/media"), dispatch).withUserName("root").build();
 	    Random randomGenerator = new Random();
 
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
-				"env" + randomGenerator.nextInt(1000000), repo, publisher).withEventStore(eventStore)
+				"env" + randomGenerator.nextInt(1000000), "peoplemerge.com", repo, publisher).withEventStore(eventStore)
 				.withNodes(1, Type.SMALL, hypervisor, new Role("standard"))
 				.withConfigurationManagement(configMgt).withDispatch(dispatch)
 				.build();
@@ -61,7 +61,7 @@ public class CreateEnvironmentWithRolesIntegrationTest {
 	 * Hypervisor("root", "kowalski", new NfsMount()), new
 	 * Role("standard")).withConfigurationManagement( new Puppet(new
 	 * Host("puppetmaster1", "peoplemerge.com",
-	 * "192.168.0.6"))).withDispatch( new JschDispatch("root")).build();
+	 * "192.168.0.7"))).withDispatch( new JschDispatch("root")).build();
 	 * ExitCode exit = command.execute(); assertEquals(ExitCode.SUCCESS, exit);
 	 * 
 	 * }

@@ -82,7 +82,7 @@ public class Environment {
 	
 	public boolean containsHostNamed(String nodeName){
 		for(Host node : hosts){
-			if(node.getHostname().equals(nodeName)){
+			if(node.getHostname().equals(nodeName) || (node.getHostname() + "." + node.getDomainname()).equals(nodeName)){
 				return true;
 			}
 		}

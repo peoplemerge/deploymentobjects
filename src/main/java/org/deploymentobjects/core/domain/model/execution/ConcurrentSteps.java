@@ -62,8 +62,9 @@ public class ConcurrentSteps extends Executable implements Comparable<Executable
 			return ExitCode.FAILURE;
 		}
 		ExitCode retval = ExitCode.SUCCESS;
-		for (Executable step : completionCodes.keySet()) {
-			ExitCode code = completionCodes.get(step);
+		for (Map.Entry<Executable, ExitCode>  entry : completionCodes.entrySet()) {
+			Executable step = entry.getKey();
+			ExitCode code = entry.getValue();
 			if (code == ExitCode.SUCCESS) {
 				publisher.publish(new StepExecutionEvent(ConcurrentEvent.CONCURRENT_STEPS_EXECUTED,step));
 			} else {

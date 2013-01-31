@@ -1,22 +1,17 @@
 
-	<!--
-		/************************************************************************
-		** ** Copyright (C) 2011 Dave Thomas, PeopleMerge. ** All rights
-		reserved. ** Contact: opensource@peoplemerge.com. ** ** This file is
-		part of the NGDS language. ** ** Licensed under the Apache License,
-		Version 2.0 (the "License"); ** you may not use this file except in
-		compliance with the License. ** You may obtain a copy of the License
-		at ** ** http://www.apache.org/licenses/LICENSE-2.0 ** ** Unless
-		required by applicable law or agreed to in writing, software **
-		distributed under the License is distributed on an "AS IS" BASIS, **
-		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-		implied. ** See the License for the specific language governing
-		permissions and ** limitations under the License. ** ** Other Uses **
-		Alternatively, this file may be used in accordance with the terms and
-		** conditions contained in a signed written agreement between you and
-		the ** copyright owner.
-		************************************************************************/
-	-->
+<!-- /************************************************************************ 
+	** ** Copyright (C) 2011 Dave Thomas, PeopleMerge. ** All rights reserved. 
+	** Contact: opensource@peoplemerge.com. ** ** This file is part of the NGDS 
+	language. ** ** Licensed under the Apache License, Version 2.0 (the "License"); 
+	** you may not use this file except in compliance with the License. ** You 
+	may obtain a copy of the License at ** ** http://www.apache.org/licenses/LICENSE-2.0 
+	** ** Unless required by applicable law or agreed to in writing, software 
+	** distributed under the License is distributed on an "AS IS" BASIS, ** WITHOUT 
+	WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. ** See the 
+	License for the specific language governing permissions and ** limitations 
+	under the License. ** ** Other Uses ** Alternatively, this file may be used 
+	in accordance with the terms and ** conditions contained in a signed written 
+	agreement between you and the ** copyright owner. ************************************************************************/ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -133,6 +128,11 @@
 			<version>1.2</version>
 		</dependency>
 		<dependency>
+			<groupId>org.jruby</groupId>
+			<artifactId>jruby-complete</artifactId>
+			<version>1.7.2</version>
+		</dependency>
+		<dependency>
 			<groupId>org.python</groupId>
 			<artifactId>jython</artifactId>
 			<version>2.5.3</version>
@@ -177,6 +177,29 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>jruby-maven-plugin</artifactId>
+						<version>1.0-beta-4</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>touch</id>
+						<phase>package</phase>
+						<configuration>
+							<tasks>
+								<java classname="org.jruby.Main" failonerror="yes">
+									<arg value="${basedir}/src/main/ruby/touch.rb" />
+								</java>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>net.sf.mavenjython</groupId>
 				<artifactId>jython-compile-maven-plugin</artifactId>
 				<version>1.2</version>
@@ -204,8 +227,7 @@
 			<url>http://antlr.org/antlr-snapshots</url>
 			<snapshots>
 				<enabled>true</enabled>
-				<!-- <updatePolicy>never</updatePolicy>
-			 -->
+				<!-- <updatePolicy>never</updatePolicy> -->
 			</snapshots>
 		</repository>
 		<repository>
@@ -214,8 +236,7 @@
 			<url>http://www.libvirt.org/maven2</url>
 			<snapshots>
 				<enabled>true</enabled>
-				<!-- <updatePolicy>never</updatePolicy>
-			 -->
+				<!-- <updatePolicy>never</updatePolicy> -->
 			</snapshots>
 		</repository>
 

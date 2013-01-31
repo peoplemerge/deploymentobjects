@@ -57,7 +57,7 @@ public class KickstartTemplateService implements
 	public void handle(EnvironmentEvent event) {
 		if (event.type == KickstartEvent.KICKSTART_REQUESTED) {
 			Map<String, Object> vars = new HashMap<String, Object>();
-			vars.put("hostname", event.getHost().getHostname());
+			vars.put("hostname", event.getHost().getHostname() + "." + event.getHost().getDomainname());
 			vars.put("ksip", storage.getIp());
 			vars.put("ksmount", storage.getMountPoint());
 			vars.put("configmgt-repos", configMgt.getKickstartYumRepos());

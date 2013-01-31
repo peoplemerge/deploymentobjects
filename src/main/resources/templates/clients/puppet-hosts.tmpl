@@ -12,9 +12,8 @@ class hosts {
         }
 #foreach( $environment in $allenvironments )
 #foreach( $host in $environment.getHosts() )
-        host {'$host.getHostname().$host.getDomainname()':
+        host {'$host.getHostname()':
                 ensure => present,
-                host_aliases => ['$host.getHostname()'],
                 ip => '$host.getIp()'
         }
 #end

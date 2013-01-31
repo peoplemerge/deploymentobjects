@@ -6,7 +6,7 @@ node 'puppetmaster1.peoplemerge.com' {
 }
 #foreach( $environment in $allenvironments )
 #foreach( $host in $environment.getHosts() )
-node '$host.getHostname().$host.getDomainname()' {
+node '$host.getHostname()' {
 #foreach( $role in $host.getRoles() )
 	include $role.getName()
 #end

@@ -70,6 +70,7 @@ public class CreateEnvironmentCommand implements CreatesJob {
 	private EventStore eventStore;
 	private EventPublisher publisher;
 	private Environment environment;
+	private String domainName;
 
 	private CreateEnvironmentCommand() {
 	}
@@ -79,9 +80,10 @@ public class CreateEnvironmentCommand implements CreatesJob {
 		// "Create a new environment called development using 1 small nodes from dom0."
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand();
 
-		public Builder(String environmentName, EnvironmentRepository repo,
+		public Builder(String environmentName, String domainName, EnvironmentRepository repo,
 				EventPublisher publisher) {
 			command.environmentName = environmentName;
+			command.domainName = domainName;
 			command.repo = repo;
 			command.publisher = publisher;
 		}
@@ -94,7 +96,7 @@ public class CreateEnvironmentCommand implements CreatesJob {
 					roleName += role.getName();
 				}
 				Host node = new Host(command.environmentName + roleName + i,
-						"peoplemerge.com", type, pool, roles);
+						command.domainName, type, pool, roles);
 				command.nodes.add(node);
 			}
 			return this;

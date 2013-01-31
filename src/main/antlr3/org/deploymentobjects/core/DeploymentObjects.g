@@ -178,8 +178,8 @@ node_param returns [Integer qty, Host.Type type, HostPool pool, List<Role> roles
 
 create_statement returns [CreateEnvironmentCommand command]:
 'Create a new environment called' ID 
-	{
-		CreateEnvironmentCommand.Builder builder = new CreateEnvironmentCommand.Builder($ID.text, getEnvironmentRepository(), getPublisher());
+	{   //TODO change grammar to accept domainname
+		CreateEnvironmentCommand.Builder builder = new CreateEnvironmentCommand.Builder($ID.text, "peoplemerge.com", getEnvironmentRepository(), getPublisher());
 		builder.withDispatch(dispatchable);
 		builder.withConfigurationManagement(getConfigurationManagement());
 	}

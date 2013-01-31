@@ -65,7 +65,7 @@ public class Puppet implements ConfigurationManagement {
 				+ "\n"
 				+ "EOF\n"
 				+ "\n"
-				+ "puppet agent --test";
+				+ "puppet agent --test &>>/root/puppet-out\n";
 	}
 
 	@Override

@@ -12,7 +12,7 @@ timezone --utc America/Los_Angeles
 bootloader --location=mbr --driveorder=vda --append="crashkernel=auto rhgb"
 zerombr
 autopart
-logging --host=192.168.0.5
+logging --host=192.168.0.5:5544
 
 repo --name="CentOS"  --baseurl=nfs:$ksmount/software/linux/distributions/centos/6.3/os/i386 --cost=100
 repo --name="PeopleMerge"  --baseurl=nfs:$ksmount/software/rpm/RPMS/i386 --cost=100

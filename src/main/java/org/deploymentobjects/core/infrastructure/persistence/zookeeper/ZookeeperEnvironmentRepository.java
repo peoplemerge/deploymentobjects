@@ -161,20 +161,20 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository
 		for (Host node : env.getHosts()) {
 			if (node.getRoles().size() == 0) {
 				if (hostsWithoutRole == "") {
-					hostsWithoutRole = node.getHostname();
+					hostsWithoutRole = node.getHostname() + "." + node.getDomainname();
 				} else {
-					hostsWithoutRole += ", " + node.getHostname();
+					hostsWithoutRole += ", " + node.getHostname() + "." + node.getDomainname();
 				}
 			} else {
 				for (Role role : node.getRoles()) {
 					if (rolesToHostNames.containsKey(role.getName())) {
 						String hostsToThatRole = rolesToHostNames.get(role
 								.getName())
-								+ SEPERATOR + node.getHostname();
+								+ SEPERATOR + node.getHostname() + "." + node.getDomainname();
 						rolesToHostNames.put(role.getName(), hostsToThatRole);
 					} else {
 						rolesToHostNames
-								.put(role.getName(), node.getHostname());
+								.put(role.getName(), node.getHostname() + "." + node.getDomainname());
 
 					}
 
@@ -276,7 +276,7 @@ public class ZookeeperEnvironmentRepository extends ZookeeperRepository
 				Environment environment = environmentsToProvision
 						.get(environmentName);
 				for (Host node : environment.getHosts()) {
-					if (node.getHostname().equals(appeared.getHost().getHostname())) {
+					if (node.getHostname().equals(appeared.getHost().getHostname())|| (node.getHostname() + "." + node.getDomainname()).equals(appeared.getHost().getHostname())) {
 						logger.debug("provisioned: " + node);
 						node.setProvisioned();
 					} else {
