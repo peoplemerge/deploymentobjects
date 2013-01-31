@@ -58,7 +58,7 @@ public class DeployApplicationCommand implements CreatesJob {
 			.getLogger(DeployApplicationCommand.class);
 	public EventPublisher publisher;
 	public String environmentName;
-	private SequentialSteps steps = new SequentialSteps(publisher);
+	private SequentialSteps steps;
 	public SequentialSteps getSteps(){
 		return steps;
 	}
@@ -87,6 +87,7 @@ public class DeployApplicationCommand implements CreatesJob {
 			command.environmentRepository = repo;
 			command.publisher = publisher;
 			command.dispatch = dispatch;
+			command.steps = new SequentialSteps(publisher);
 		}
 
 		public DeployApplicationCommand build() {

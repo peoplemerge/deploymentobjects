@@ -14,6 +14,7 @@ import org.deploymentobjects.core.domain.shared.EventStore;
 import org.deploymentobjects.core.infrastructure.execution.JschDispatch;
 import org.deploymentobjects.core.infrastructure.persistence.InMemoryEventStore;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperEnvironmentRepository;
+import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperEventStore;
 import org.deploymentobjects.core.infrastructure.persistence.zookeeper.ZookeeperPersistence;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
@@ -38,14 +39,15 @@ public class DeployJenkinsIntegrationTest {
 	public void testDeployJenkins() throws Exception {
 
 
-		EventStore eventStore = new InMemoryEventStore();
+		ZookeeperPersistence persistence = new ZookeeperPersistence("ino:2181");
+		EventStore eventStore = new ZookeeperEventStore(persistence);
 		EventPublisher publisher = new EventPublisher(eventStore);
 		EnvironmentRepository repo = ZookeeperEnvironmentRepository.factory(
-				new ZookeeperPersistence("ino:2181"), publisher);
+				persistence, publisher);
 		
 		DeployApplicationCommand cmd = new DeployApplicationCommand.Builder(publisher, 
-				"jenkins", "rfctr1", repo, new JschDispatch(publisher, "root"))
-				.addCommandOnNodesByRole(commands, "web").build();
+				"jenkins", "jenkins46383", repo, new JschDispatch(publisher, "root"))
+				.addCommandOnNodesByRole(commands, "standard").build();
 		Job job = cmd.create();
 		ExitCode exit = job.execute();
 		assertEquals(ExitCode.SUCCESS, exit);

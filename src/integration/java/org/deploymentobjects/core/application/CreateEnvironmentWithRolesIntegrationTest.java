@@ -41,7 +41,7 @@ public class CreateEnvironmentWithRolesIntegrationTest {
 	    Random randomGenerator = new Random();
 
 		CreateEnvironmentCommand command = new CreateEnvironmentCommand.Builder(
-				"env" + randomGenerator.nextInt(1000000), "peoplemerge.com", repo, publisher).withEventStore(eventStore)
+				"jenkins" + randomGenerator.nextInt(1000000), "peoplemerge.com", repo, publisher).withEventStore(eventStore)
 				.withNodes(1, Type.SMALL, hypervisor, new Role("standard"))
 				.withConfigurationManagement(configMgt).withDispatch(dispatch)
 				.build();
